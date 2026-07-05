@@ -61,7 +61,7 @@ export default function PayoutBreakdown({ periods, accentColor }: Props) {
             >
               {/* Top row: label + icon badge */}
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
-                <p style={{ fontSize: 10, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0, lineHeight: 1.3 }}>{def.label}</p>
+                <p style={{ fontSize: 10, fontWeight: 800, color: def.color, textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0, lineHeight: 1.3 }}>{def.label}</p>
                 <div style={{
                   width: 34, height: 34, borderRadius: 10,
                   background: `${def.color}18`,
@@ -75,13 +75,13 @@ export default function PayoutBreakdown({ periods, accentColor }: Props) {
               </div>
 
               {/* Value */}
-              <div style={{ fontSize: 'clamp(0.9rem, 3vw, 1.55rem)', fontWeight: 900, color: def.color, lineHeight: 1.15, overflowWrap: 'break-word' }}>
+              <div style={{ fontSize: 'clamp(0.9rem, 3vw, 1.55rem)', fontWeight: 900, color: '#0f172a', lineHeight: 1.15, overflowWrap: 'break-word' }}>
                 <AnimatedNumber value={value} format={INR} />
               </div>
 
               {/* Percentage */}
               {pct !== null && (
-                <p style={{ fontSize: 10, fontWeight: 700, color: `${def.color}99`, marginTop: 6 }}>{pct}% of revenue</p>
+                <p style={{ fontSize: 10, fontWeight: 700, color: `${def.color}bb`, marginTop: 6 }}>{pct}% of revenue</p>
               )}
             </motion.div>
           )
