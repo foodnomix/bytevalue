@@ -195,10 +195,32 @@ export default function ItemLedger({ items, accentColor }: Props) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 60 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 60, background: '#0b1120' }}
           >
-            {/* Rotation lives on this inner div, not on the Framer Motion node */}
-            <div className="fs-inner" style={{ width: '100%', height: '100%', background: '#0b1120', display: 'flex', flexDirection: 'column' }}>
+            {/* Portrait: rotate prompt */}
+            <div className="fs-portrait-only" style={{
+              flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              height: '100%', gap: 20, textAlign: 'center', padding: 32,
+            }}>
+              <div style={{ fontSize: 52, lineHeight: 1 }}>⟳</div>
+              <p style={{ fontSize: 18, fontWeight: 900, color: '#f1f5f9', margin: 0 }}>Rotate your device</p>
+              <p style={{ fontSize: 13, color: '#475569', margin: 0, lineHeight: 1.6 }}>
+                Turn to landscape mode to view the full Item Performance Ledger
+              </p>
+              <button
+                onClick={() => setFullscreen(false)}
+                style={{
+                  marginTop: 8,
+                  background: '#1e293b', color: '#94a3b8', border: '1px solid #334155',
+                  padding: '10px 24px', borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                }}
+              >
+                Close
+              </button>
+            </div>
+
+            {/* Landscape: full table */}
+            <div className="fs-landscape-only" style={{ flexDirection: 'column', height: '100%' }}>
               <div style={{
                 background: '#0d1829',
                 padding: '12px 18px',
@@ -236,16 +258,11 @@ export default function ItemLedger({ items, accentColor }: Props) {
       </AnimatePresence>
 
       <style>{`
-        @media (orientation: portrait) {
-          .fs-inner {
-            width: 100vh !important;
-            height: 100vw !important;
-            position: absolute !important;
-            top: calc((100vh - 100vw) / 2) !important;
-            left: calc((100vw - 100vh) / 2) !important;
-            transform: rotate(90deg) !important;
-            transform-origin: center center !important;
-          }
+        .fs-portrait-only  { display: flex; }
+        .fs-landscape-only { display: none; }
+        @media (orientation: landscape) {
+          .fs-portrait-only  { display: none; }
+          .fs-landscape-only { display: flex; }
         }
       `}</style>
     </>
