@@ -116,8 +116,27 @@ export default function ItemLedger({ items, accentColor }: Props) {
   }, [])
 
   useEffect(() => {
-    document.body.style.overflow = fullscreen ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
+    if (fullscreen) {
+      // Lock body scroll without breaking touch scroll inside the overlay
+      const scrollY = window.scrollY
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.left = '0'
+      document.body.style.right = '0'
+    } else {
+      const scrollY = document.body.style.top
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.left = ''
+      document.body.style.right = ''
+      window.scrollTo(0, parseInt(scrollY || '0') * -1)
+    }
+    return () => {
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.left = ''
+      document.body.style.right = ''
+    }
   }, [fullscreen])
 
   return (
@@ -204,7 +223,7 @@ export default function ItemLedger({ items, accentColor }: Props) {
                 <X size={12} /> Close
               </motion.button>
             </div>
-            <div style={{ flex: 1, overflowY: 'auto' }} className="scrollbar-thin">
+            <div style={{ flex: 1, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' as any, overscrollBehavior: 'contain' }} className="scrollbar-thin">
               <ColumnHeaders dark />
               {items.map((item, i) => (
                 <Row key={item.id} item={item} rank={i + 1} accentColor={accentColor} dark />
@@ -213,18 +232,6 @@ export default function ItemLedger({ items, accentColor }: Props) {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <style>{`
-        @media (orientation: portrait) {
-          .fs-ledger {
-            width: 100vh !important; height: 100vw !important;
-            top: calc((100vh - 100vw) / 2) !important;
-            left: calc((100vw - 100vh) / 2) !important;
-            transform: rotate(90deg) !important;
-            transform-origin: center center !important;
-          }
-        }
-      `}</style>
     </>
   )
 }

@@ -94,38 +94,80 @@ export default function PerformanceOverview({ periods, accentColor }: Props) {
             />
           </div>
 
-          {/* Revenue formula */}
+          {/* Revenue breakdown — ledger style */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.2 }}
-            style={{ background: '#fff', borderRadius: 16, padding: '18px 20px', border: '1px solid #ede9e4', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}
+            style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', border: '1px solid #ede9e4', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}
           >
-            <p style={{ fontSize: 10, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 16 }}>Revenue Breakdown</p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 10, textAlign: 'center' }}>
+            {/* Card header */}
+            <div style={{ padding: '14px 20px 12px', borderBottom: '1px solid #f1f5f9' }}>
+              <p style={{ fontSize: 10, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.15em', margin: 0 }}>Revenue Breakdown</p>
+            </div>
+
+            {/* Rows */}
+            <div style={{ padding: '4px 0' }}>
               {[
-                { label: 'Subtotal', val: INR(p.gross_subtotal), color: '#1e293b' },
-                { op: '+' },
-                { label: 'Packaging', val: INR(p.packaging), color: '#1e293b' },
-                { op: '−' },
-                { label: 'Discounts', val: INR(p.discounts), color: '#dc2626' },
-                { op: '+' },
-                { label: 'Cust. GST', val: INR(p.cust_gst), color: '#2563eb' },
-              ].map((item, i) =>
-                'op' in item ? (
-                  <span key={i} style={{ color: '#cbd5e1', fontWeight: 900, fontSize: 18 }}>{item.op}</span>
-                ) : (
-                  <div key={i} style={{ flex: 1, minWidth: 80 }}>
-                    <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 4 }}>{item.label}</p>
-                    <p style={{ fontSize: 'clamp(0.8rem,2.8vw,1.1rem)', fontWeight: 700, color: item.color, overflowWrap: 'break-word' }}>{item.val}</p>
+                { label: 'Subtotal',     val: p.gross_subtotal, sign: null,  valColor: '#1e293b' },
+                { label: 'Packaging',    val: p.packaging,      sign: '+',   valColor: '#1e293b' },
+                { label: 'Discounts',    val: p.discounts,      sign: '−',   valColor: '#dc2626', negative: true },
+                { label: 'Customer GST', val: p.cust_gst,       sign: '+',   valColor: '#2563eb' },
+              ].map((row, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '11px 20px',
+                    borderBottom: i < 3 ? '1px solid #f8fafc' : 'none',
+                  }}
+                >
+                  {/* Sign badge + label */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{
+                      width: 26, height: 26, borderRadius: 8, flexShrink: 0,
+                      background: row.sign === '−' ? '#fff1f2' : row.sign === '+' ? '#f0fdf4' : '#f8fafc',
+                      color: row.sign === '−' ? '#dc2626' : row.sign === '+' ? '#059669' : '#94a3b8',
+                      fontSize: 14, fontWeight: 900,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {row.sign ?? '='}
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: '#64748b' }}>{row.label}</span>
                   </div>
-                )
-              )}
-              <span style={{ color: '#cbd5e1', fontWeight: 900, fontSize: 18 }}>=</span>
-              <div style={{ flex: 1.5, minWidth: 130, background: 'linear-gradient(135deg,#059669,#10b981)', borderRadius: 14, padding: '12px 16px', boxShadow: '0 6px 20px rgba(16,185,129,0.3)' }}>
-                <p style={{ fontSize: 9, fontWeight: 800, color: 'rgba(255,255,255,0.75)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Customer Paid</p>
-                <p style={{ fontSize: 'clamp(0.8rem,2.8vw,1.1rem)', fontWeight: 700, color: '#fff', overflowWrap: 'break-word' }}>{INR(p.gross_subtotal + p.packaging - p.discounts + p.cust_gst)}</p>
+
+                  {/* Value */}
+                  <span style={{ fontSize: 15, fontWeight: 800, color: row.valColor, letterSpacing: '-0.01em' }}>
+                    <AnimatedNumber value={row.val} format={INR} />
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Customer Paid total */}
+            <div style={{
+              margin: '0 12px 12px',
+              background: `linear-gradient(135deg, ${accentColor}18 0%, ${accentColor}08 60%, #fff 100%)`,
+              border: `1.5px solid ${accentColor}28`,
+              borderRadius: 12,
+              padding: '14px 16px',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{
+                  width: 26, height: 26, borderRadius: 8,
+                  background: `${accentColor}22`,
+                  color: accentColor,
+                  fontSize: 14, fontWeight: 900,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  =
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>Customer Paid</span>
               </div>
+              <span style={{ fontSize: 20, fontWeight: 900, color: accentColor, letterSpacing: '-0.02em' }}>
+                <AnimatedNumber value={p.gross_subtotal + p.packaging - p.discounts + p.cust_gst} format={INR} />
+              </span>
             </div>
           </motion.div>
 

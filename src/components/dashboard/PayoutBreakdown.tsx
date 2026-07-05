@@ -11,24 +11,16 @@ interface Props {
   platform: Platform
 }
 
-// Card config — accent strip color + icon
 const CARD_DEFS = [
-  { key: 'customer_paid', label: 'Customer Paid',   strip: '#10b981', icon: '↑' },
-  { key: 'platform_fee',  label: 'Platform Fee',    strip: '#f43f5e', icon: '↓' },
-  { key: 'govt_tax',      label: 'Govt. Taxes',     strip: '#f59e0b', icon: '↓' },
-  { key: 'ads_spend',     label: 'Ads & Promo',     strip: '#8b5cf6', icon: '↓' },
+  { key: 'customer_paid', label: 'Customer Paid', color: '#10b981', icon: '↑' },
+  { key: 'platform_fee',  label: 'Platform Fee',  color: '#f43f5e', icon: '↓' },
+  { key: 'govt_tax',      label: 'Govt. Taxes',   color: '#f59e0b', icon: '↓' },
+  { key: 'ads_spend',     label: 'Ads & Promo',   color: '#8b5cf6', icon: '↓' },
 ] as const
 
 export default function PayoutBreakdown({ periods, accentColor, platform }: Props) {
   const overall = periods.find(p => p.sort_order === 0)
   if (!overall) return null
-
-  // Swiggy: warm cream base; Zomato: cool rose base
-  const cardBase = platform === 'swiggy'
-    ? 'linear-gradient(135deg, #fff0dd 0%, #fff 65%)'
-    : 'linear-gradient(135deg, #fff1f2 0%, #fff 65%)'
-
-  const borderTint = platform === 'swiggy' ? '#fed7aa66' : '#fecdd344'
 
   const values: Record<string, { value: number; pct: number | null }> = {
     customer_paid: { value: overall.customer_paid, pct: null },
@@ -60,37 +52,37 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
               viewport={{ once: true }}
               transition={{ duration: 0.38, delay: i * 0.07, ease: [0.34, 1.1, 0.64, 1] }}
               style={{
-                background: cardBase,
+                background: `linear-gradient(140deg, ${accentColor}12 0%, ${accentColor}05 55%, #ffffff 100%)`,
                 borderRadius: 18,
-                border: `1px solid ${borderTint}`,
-                overflow: 'hidden',
-                display: 'flex',
-                boxShadow: '0 1px 6px rgba(0,0,0,0.05)',
+                border: `1px solid ${accentColor}28`,
+                boxShadow: `0 2px 14px ${accentColor}0d, 0 1px 3px rgba(0,0,0,0.04)`,
+                padding: '16px 18px 18px',
               }}
             >
-              {/* Left accent strip */}
-              <div style={{ width: 5, flexShrink: 0, background: def.strip, borderRadius: '18px 0 0 18px' }} />
-
-              {/* Content */}
-              <div style={{ padding: '16px 16px 16px 14px', flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <p style={{ fontSize: 10, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>{def.label}</p>
-                  <span style={{
-                    width: 20, height: 20, borderRadius: 6,
-                    background: `${def.strip}18`,
-                    color: def.strip,
-                    fontSize: 11, fontWeight: 900,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0,
-                  }}>{def.icon}</span>
-                </div>
-                <div style={{ fontSize: 'clamp(0.9rem, 3vw, 1.55rem)', fontWeight: 900, color: '#0f172a', lineHeight: 1.15, overflowWrap: 'break-word' }}>
-                  <AnimatedNumber value={value} format={INR} />
-                </div>
-                {pct !== null && (
-                  <p style={{ fontSize: 10, fontWeight: 700, color: def.strip, marginTop: 6 }}>{pct}% of revenue</p>
-                )}
+              {/* Top row: label + icon badge */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
+                <p style={{ fontSize: 10, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0, lineHeight: 1.3 }}>{def.label}</p>
+                <div style={{
+                  width: 34, height: 34, borderRadius: 10,
+                  background: `${def.color}18`,
+                  border: `1.5px solid ${def.color}30`,
+                  color: def.color,
+                  fontSize: 15, fontWeight: 900,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0,
+                  boxShadow: `0 2px 8px ${def.color}20`,
+                }}>{def.icon}</div>
               </div>
+
+              {/* Value */}
+              <div style={{ fontSize: 'clamp(0.9rem, 3vw, 1.55rem)', fontWeight: 900, color: def.color, lineHeight: 1.15, overflowWrap: 'break-word' }}>
+                <AnimatedNumber value={value} format={INR} />
+              </div>
+
+              {/* Percentage */}
+              {pct !== null && (
+                <p style={{ fontSize: 10, fontWeight: 700, color: `${def.color}99`, marginTop: 6 }}>{pct}% of revenue</p>
+              )}
             </motion.div>
           )
         })}
