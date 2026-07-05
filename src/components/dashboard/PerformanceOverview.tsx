@@ -32,7 +32,11 @@ export default function PerformanceOverview({ periods, accentColor }: Props) {
 
   return (
     <section>
-      <SectionHeading title="Performance Overview" accentColor={accentColor} />
+      <SectionHeading
+        title="Performance Overview"
+        accentColor={accentColor}
+        tooltip="Key order and revenue metrics for each settlement period — total orders, gross revenue, discounts applied, and average order value."
+      />
 
       {/* Period tabs */}
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 6, marginBottom: 20 }} className="scrollbar-hide">

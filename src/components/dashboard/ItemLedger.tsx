@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Maximize2, X } from 'lucide-react'
+import { Maximize2, X, Info } from 'lucide-react'
 import { INR } from '../../lib/format'
 import type { LedgerItem } from '../../types'
 
@@ -108,6 +108,17 @@ function ColumnHeaders({ dark }: { dark?: boolean }) {
 
 export default function ItemLedger({ items, accentColor }: Props) {
   const [fullscreen, setFullscreen] = useState(false)
+  const [infoOpen, setInfoOpen] = useState(false)
+  const infoRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!infoOpen) return
+    const handler = (e: MouseEvent) => {
+      if (infoRef.current && !infoRef.current.contains(e.target as Node)) setInfoOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [infoOpen])
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => { if (e.key === 'Escape') setFullscreen(false) }
@@ -151,13 +162,57 @@ export default function ItemLedger({ items, accentColor }: Props) {
             padding: '14px 18px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, position: 'relative' }} ref={infoRef}>
               <div style={{ width: 3, height: 18, borderRadius: 2, background: accentColor, flexShrink: 0 }} />
               <span style={{ color: '#f1f5f9', fontWeight: 900, fontSize: 14 }}>Item Performance Ledger</span>
               <span style={{
                 background: 'rgba(255,255,255,0.07)', color: '#475569',
                 fontSize: 10, fontWeight: 700, borderRadius: 6, padding: '2px 8px', flexShrink: 0,
               }}>{items.length} items</span>
+
+              {/* Info icon */}
+              <button
+                onClick={() => setInfoOpen(v => !v)}
+                style={{ background: 'none', border: 'none', padding: 2, cursor: 'pointer', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+                aria-label="More info"
+              >
+                <Info size={14} style={{ color: infoOpen ? accentColor : '#475569', transition: 'color 0.2s' }} />
+              </button>
+
+              {/* Tooltip popover */}
+              <AnimatePresence>
+                {infoOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                    transition={{ duration: 0.18, ease: 'easeOut' }}
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      marginTop: 12,
+                      background: '#fff',
+                      borderRadius: 14,
+                      padding: '14px 16px',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+                      border: `1px solid ${accentColor}33`,
+                      zIndex: 50,
+                      width: 'min(300px, 88vw)',
+                    }}
+                  >
+                    <div style={{ position: 'absolute', top: -6, left: 120, width: 12, height: 12, background: '#fff', border: `1px solid ${accentColor}33`, borderRight: 'none', borderBottom: 'none', transform: 'rotate(45deg)' }} />
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+                      <p style={{ fontSize: 12, fontWeight: 500, color: '#475569', margin: 0, lineHeight: 1.65 }}>
+                        A full list of every menu item sold this period — ranked by units sold. Shows net payout per unit, margin percentage, and total earnings per item.
+                      </p>
+                      <button onClick={() => setInfoOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, flexShrink: 0, color: '#94a3b8' }}>
+                        <X size={13} />
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
             <motion.button
               whileHover={{ scale: 1.04, background: `${accentColor}dd` }}

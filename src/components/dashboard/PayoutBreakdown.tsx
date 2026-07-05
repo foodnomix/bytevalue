@@ -38,7 +38,11 @@ export default function PayoutBreakdown({ periods, accentColor }: Props) {
 
   return (
     <section>
-      <SectionHeading title="Payout Breakdown" accentColor={accentColor} />
+      <SectionHeading
+        title="Payout Breakdown"
+        accentColor={accentColor}
+        tooltip="Shows how your customer payment is distributed — what you keep as net payout vs. what goes to platform fees, government taxes, and promotions."
+      />
 
       {/* Deduction cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(155px, 1fr))', gap: 10, marginBottom: 10 }}>

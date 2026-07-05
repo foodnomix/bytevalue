@@ -18,7 +18,11 @@ export default function TopItems({ items, accentColor }: Props) {
 
   return (
     <section>
-      <SectionHeading title="Top 5 Items" accentColor={accentColor} />
+      <SectionHeading
+        title="Top 5 Items"
+        accentColor={accentColor}
+        tooltip="Your five best-performing menu items by units sold this period. Bar width shows each item's share of total top-5 revenue."
+      />
 
       {/* Fortnight switcher */}
       <div style={{ display: 'flex', gap: 6, background: '#f1f5f9', borderRadius: 14, padding: 4, width: 'fit-content', marginBottom: 18 }}>
