@@ -121,7 +121,11 @@ export default function ReportPage() {
         </div>
 
         {/* Platform tabs */}
-        <div style={{ display: 'flex', gap: 5, background: '#f5f4f2', borderRadius: 14, padding: '4px', flexShrink: 0 }}>
+        <motion.div
+          animate={{ background: platform === 'swiggy' ? '#fff4ec' : '#fff0f1' }}
+          transition={{ duration: 0.4 }}
+          style={{ display: 'flex', gap: 4, borderRadius: 16, padding: '4px', flexShrink: 0, border: `1.5px solid ${PLATFORM_COLOR[platform]}33` }}
+        >
           {(['swiggy', 'zomato'] as Platform[]).map(p => {
             const pc = PLATFORM_COLOR[p]
             const active = platform === p
@@ -129,20 +133,20 @@ export default function ReportPage() {
               <motion.button
                 key={p}
                 onClick={() => switchPlatform(p)}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: active ? 1 : 1.04 }}
+                whileTap={{ scale: 0.93 }}
                 style={{
                   position: 'relative',
-                  padding: '8px 22px',
-                  borderRadius: 10,
+                  padding: '9px 26px',
+                  borderRadius: 12,
                   border: 'none',
                   fontSize: 13,
                   fontWeight: 800,
                   cursor: 'pointer',
                   background: 'transparent',
-                  color: active ? '#fff' : '#64748b',
+                  color: active ? '#fff' : '#94a3b8',
                   zIndex: 1,
-                  transition: 'color 0.2s',
-                  overflow: 'hidden',
+                  letterSpacing: '0.01em',
                 }}
               >
                 {active && (
@@ -150,19 +154,31 @@ export default function ReportPage() {
                     layoutId="platform-pill"
                     style={{
                       position: 'absolute', inset: 0,
-                      background: pc,
-                      borderRadius: 10,
-                      boxShadow: `0 4px 18px ${pc}55`,
+                      background: `linear-gradient(135deg, ${pc}, ${pc}cc)`,
+                      borderRadius: 12,
                       zIndex: -1,
                     }}
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 35, mass: 0.8 }}
+                  />
+                )}
+                {active && (
+                  <motion.div
+                    layoutId="platform-glow"
+                    style={{
+                      position: 'absolute', inset: -2,
+                      borderRadius: 14,
+                      background: `${pc}30`,
+                      filter: 'blur(8px)',
+                      zIndex: -2,
+                    }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 35, mass: 0.8 }}
                   />
                 )}
                 {p.charAt(0).toUpperCase() + p.slice(1)}
               </motion.button>
             )
           })}
-        </div>
+        </motion.div>
       </motion.div>
 
       {/* ── Main content ─────────────────────────────────────────────── */}
@@ -202,10 +218,10 @@ export default function ReportPage() {
             <motion.div
               key={`${restaurant?.id}-${platform}`}
               custom={direction}
-              initial={{ opacity: 0, x: direction * 40 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: direction * -40 }}
-              transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+              initial={{ opacity: 0, x: direction * 48, scale: 0.97, filter: 'blur(4px)' }}
+              animate={{ opacity: 1, x: 0, scale: 1, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, x: direction * -48, scale: 0.97, filter: 'blur(4px)' }}
+              transition={{ duration: 0.38, ease: [0.25, 0.46, 0.45, 0.94] }}
               style={{ display: 'flex', flexDirection: 'column', gap: 36 }}
             >
               {/* Date range pill */}
