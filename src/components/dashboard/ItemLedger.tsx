@@ -250,32 +250,11 @@ export default function ItemLedger({ items, accentColor }: Props) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 60, background: '#0b1120' }}
+            style={{ position: 'fixed', inset: 0, zIndex: 60, background: '#0b1120', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            {/* Portrait: rotate prompt */}
-            <div className="fs-portrait-only" style={{
-              flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              height: '100%', gap: 20, textAlign: 'center', padding: 32,
-            }}>
-              <div style={{ fontSize: 52, lineHeight: 1 }}>⟳</div>
-              <p style={{ fontSize: 18, fontWeight: 900, color: '#f1f5f9', margin: 0 }}>Rotate your device</p>
-              <p style={{ fontSize: 13, color: '#475569', margin: 0, lineHeight: 1.6 }}>
-                Turn to landscape mode to view the full Item Performance Ledger
-              </p>
-              <button
-                onClick={() => setFullscreen(false)}
-                style={{
-                  marginTop: 8,
-                  background: '#1e293b', color: '#94a3b8', border: '1px solid #334155',
-                  padding: '10px 24px', borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                }}
-              >
-                Close
-              </button>
-            </div>
-
-            {/* Landscape: full table */}
-            <div className="fs-landscape-only" style={{ flexDirection: 'column', height: '100%' }}>
+            {/* Panel — inset card in portrait, full screen in landscape */}
+            <div className="fs-panel">
+              {/* Header */}
               <div style={{
                 background: '#0d1829',
                 padding: '12px 18px',
@@ -301,6 +280,8 @@ export default function ItemLedger({ items, accentColor }: Props) {
                   <X size={12} /> Close
                 </motion.button>
               </div>
+
+              {/* Scrollable rows */}
               <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' as any, overscrollBehavior: 'contain' }} className="scrollbar-thin">
                 <ColumnHeaders dark />
                 {items.map((item, i) => (
@@ -313,11 +294,25 @@ export default function ItemLedger({ items, accentColor }: Props) {
       </AnimatePresence>
 
       <style>{`
-        .fs-portrait-only  { display: flex; }
-        .fs-landscape-only { display: none; }
+        .fs-panel {
+          display: flex;
+          flex-direction: column;
+          background: #0d1829;
+          overflow: hidden;
+          /* Portrait: inset card with padding on both sides */
+          width: calc(100% - 40px);
+          height: calc(100% - 80px);
+          border-radius: 20px;
+          box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+        }
         @media (orientation: landscape) {
-          .fs-portrait-only  { display: none; }
-          .fs-landscape-only { display: flex; }
+          .fs-panel {
+            /* Landscape: full screen, no inset */
+            width: 100%;
+            height: 100%;
+            border-radius: 0;
+            box-shadow: none;
+          }
         }
       `}</style>
     </>
