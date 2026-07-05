@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 100" fill="none">
+  <!-- Icon mark -->
+  <!-- Top-left square -->
+  <rect x="0" y="4" width="42" height="42" rx="10" fill="white"/>
+  <!-- Bottom-left square -->
+  <rect x="0" y="54" width="42" height="42" rx="10" fill="white"/>
+  <!-- Top-right: green D -->
+  <path d="M50 4 H72 C88 4 98 14 98 25 C98 36 88 46 72 46 H50 Z" fill="#00C98D"/>
+  <!-- Bottom-right: white D -->
+  <path d="M50 54 H72 C88 54 98 64 98 75 C98 86 88 96 72 96 H50 Z" fill="white" opacity="0.88"/>
+
+  <!-- Wordmark: "Byte" white, "Value" green -->
+  <text x="116" y="63" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-weight="800" font-size="46" fill="white" letter-spacing="-1">Byte</text>
+  <text x="228" y="63" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-weight="800" font-size="46" fill="#00C98D" letter-spacing="-1">Value</text>
+
+  <!-- Tagline -->
+  <text x="117" y="86" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-weight="600" font-size="11.5" fill="white" opacity="0.55" letter-spacing="3.2">PROFIT INTELLIGENCE REPORT</text>
+</svg>
