@@ -18,7 +18,7 @@ const CARD_DEFS = [
   { key: 'ads_spend',     label: 'Ads & Promo',   color: '#8b5cf6', icon: '↓' },
 ] as const
 
-export default function PayoutBreakdown({ periods, accentColor, platform }: Props) {
+export default function PayoutBreakdown({ periods, accentColor }: Props) {
   const overall = periods.find(p => p.sort_order === 0)
   if (!overall) return null
 
