@@ -110,6 +110,34 @@ export default function ItemLedger({ items, accentColor }: Props) {
   const [fullscreen, setFullscreen] = useState(false)
   const [infoOpen, setInfoOpen] = useState(false)
   const infoRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const touchStartX = useRef(0)
+  const touchStartScrollTop = useRef(0)
+
+  // In portrait+rotated mode, translate horizontal swipes → vertical scroll
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el || !fullscreen) return
+    const isPortrait = () => window.innerHeight > window.innerWidth
+    const onStart = (e: TouchEvent) => {
+      if (!isPortrait()) return
+      touchStartX.current = e.touches[0].clientX
+      touchStartScrollTop.current = el.scrollTop
+    }
+    const onMove = (e: TouchEvent) => {
+      if (!isPortrait()) return
+      e.preventDefault()
+      const dx = e.touches[0].clientX - touchStartX.current
+      // rotate(90deg) clockwise: left swipe → scroll down
+      el.scrollTop = touchStartScrollTop.current - dx
+    }
+    el.addEventListener('touchstart', onStart, { passive: true })
+    el.addEventListener('touchmove', onMove, { passive: false })
+    return () => {
+      el.removeEventListener('touchstart', onStart)
+      el.removeEventListener('touchmove', onMove)
+    }
+  }, [fullscreen])
 
   useEffect(() => {
     if (!infoOpen) return
@@ -282,7 +310,11 @@ export default function ItemLedger({ items, accentColor }: Props) {
               </div>
 
               {/* Scrollable rows */}
-              <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' as any, overscrollBehavior: 'contain' }} className="scrollbar-thin">
+              <div
+                ref={scrollRef}
+                style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' as any, overscrollBehavior: 'contain' }}
+                className="scrollbar-thin"
+              >
                 <ColumnHeaders dark />
                 {items.map((item, i) => (
                   <Row key={item.id} item={item} rank={i + 1} accentColor={accentColor} dark />
@@ -299,15 +331,28 @@ export default function ItemLedger({ items, accentColor }: Props) {
           flex-direction: column;
           background: #0d1829;
           overflow: hidden;
-          /* Portrait: inset card with padding on both sides */
-          width: calc(100% - 40px);
-          height: calc(100% - 80px);
-          border-radius: 20px;
-          box-shadow: 0 24px 64px rgba(0,0,0,0.5);
         }
+
+        /* Portrait: rotate 90° clockwise + inset so dark edges are visible as padding */
+        @media (orientation: portrait) {
+          .fs-panel {
+            position: absolute;
+            /* Pre-rotation size: width → visual height, height → visual width */
+            width: calc(100vh - 80px);
+            height: calc(100vw - 40px);
+            /* Centre the rotated box in the screen */
+            top: calc((100vh - (100vw - 40px)) / 2);
+            left: calc((100vw - (100vh - 80px)) / 2);
+            transform: rotate(90deg);
+            transform-origin: center center;
+            border-radius: 20px;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+          }
+        }
+
+        /* Landscape: full screen, no rotation */
         @media (orientation: landscape) {
           .fs-panel {
-            /* Landscape: full screen, no inset */
             width: 100%;
             height: 100%;
             border-radius: 0;
