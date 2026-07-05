@@ -187,7 +187,7 @@ export default function ItemLedger({ items, accentColor }: Props) {
         </div>
       </section>
 
-      {/* Fullscreen overlay — always landscape */}
+      {/* Fullscreen overlay */}
       <AnimatePresence>
         {fullscreen && (
           <motion.div
@@ -195,43 +195,59 @@ export default function ItemLedger({ items, accentColor }: Props) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 60, background: '#0b1120', display: 'flex', flexDirection: 'column' }}
-            className="fs-ledger"
+            style={{ position: 'fixed', inset: 0, zIndex: 60 }}
           >
-            <div style={{
-              background: '#0d1829',
-              padding: '12px 18px',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              borderBottom: '1px solid #1e293b', flexShrink: 0,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 3, height: 18, borderRadius: 2, background: accentColor }} />
-                <span style={{ color: '#f1f5f9', fontWeight: 900, fontSize: 14 }}>Item Performance Ledger</span>
-                <span style={{ color: '#475569', fontSize: 11, fontWeight: 600 }}>Sorted by units sold ↓</span>
+            {/* Rotation lives on this inner div, not on the Framer Motion node */}
+            <div className="fs-inner" style={{ width: '100%', height: '100%', background: '#0b1120', display: 'flex', flexDirection: 'column' }}>
+              <div style={{
+                background: '#0d1829',
+                padding: '12px 18px',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                borderBottom: '1px solid #1e293b', flexShrink: 0,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 3, height: 18, borderRadius: 2, background: accentColor }} />
+                  <span style={{ color: '#f1f5f9', fontWeight: 900, fontSize: 14 }}>Item Performance Ledger</span>
+                  <span style={{ color: '#475569', fontSize: 11, fontWeight: 600 }}>Sorted by units sold ↓</span>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setFullscreen(false)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    background: accentColor, color: '#fff', border: 'none',
+                    padding: '7px 14px', borderRadius: 10,
+                    fontSize: 11, fontWeight: 800, cursor: 'pointer',
+                  }}
+                >
+                  <X size={12} /> Close
+                </motion.button>
               </div>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setFullscreen(false)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  background: accentColor, color: '#fff', border: 'none',
-                  padding: '7px 14px', borderRadius: 10,
-                  fontSize: 11, fontWeight: 800, cursor: 'pointer',
-                }}
-              >
-                <X size={12} /> Close
-              </motion.button>
-            </div>
-            <div style={{ flex: 1, overflowY: 'scroll', WebkitOverflowScrolling: 'touch' as any, overscrollBehavior: 'contain' }} className="scrollbar-thin">
-              <ColumnHeaders dark />
-              {items.map((item, i) => (
-                <Row key={item.id} item={item} rank={i + 1} accentColor={accentColor} dark />
-              ))}
+              <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' as any, overscrollBehavior: 'contain' }} className="scrollbar-thin">
+                <ColumnHeaders dark />
+                {items.map((item, i) => (
+                  <Row key={item.id} item={item} rank={i + 1} accentColor={accentColor} dark />
+                ))}
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <style>{`
+        @media (orientation: portrait) {
+          .fs-inner {
+            width: 100vh !important;
+            height: 100vw !important;
+            position: absolute !important;
+            top: calc((100vh - 100vw) / 2) !important;
+            left: calc((100vw - 100vh) / 2) !important;
+            transform: rotate(90deg) !important;
+            transform-origin: center center !important;
+          }
+        }
+      `}</style>
     </>
   )
 }
