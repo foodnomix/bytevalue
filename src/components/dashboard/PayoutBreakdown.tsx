@@ -12,7 +12,7 @@ interface Props {
 }
 
 const CARD_DEFS = [
-  { key: 'customer_paid', label: 'Customer Paid', color: '#10b981', icon: '↑' },
+  { key: 'customer_paid', label: 'Subtotal', color: '#10b981', icon: '↑' },
   { key: 'platform_fee',  label: 'Platform Fee',  color: '#f43f5e', icon: '↓' },
   { key: 'govt_tax',      label: 'Govt. Taxes',   color: '#f59e0b', icon: '↓' },
   { key: 'ads_spend',     label: 'Ads & Promo',   color: '#8b5cf6', icon: '↓' },
