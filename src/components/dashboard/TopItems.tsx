@@ -6,15 +6,25 @@ import type { TopItem } from '../../types'
 interface Props {
   items: TopItem[]
   accentColor: string
+  month: number
+  year: number
 }
 
 const RANK_COLORS = ['#FC8019', '#64748b', '#64748b', '#64748b', '#64748b']
 
-export default function TopItems({ items, accentColor }: Props) {
+const MONTH_NAMES = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+export default function TopItems({ items, accentColor, month, year }: Props) {
   const [fortnight, setFortnight] = useState<1 | 2>(1)
 
   const visible = items.filter(i => i.fortnight === fortnight).sort((a, b) => a.rank - b.rank)
   const maxUnits = Math.max(...visible.map(i => i.units))
+
+  const monthName = MONTH_NAMES[month] ?? ''
+  const lastDay = new Date(year, month, 0).getDate()
+  const label1 = `1 – 15 ${monthName}`
+  const label2 = `16 – ${lastDay} ${monthName}`
+  const headerLabel = fortnight === 1 ? `1 – 15 ${monthName} ${year}` : `16 – ${lastDay} ${monthName} ${year}`
 
   return (
     <section>
@@ -44,7 +54,7 @@ export default function TopItems({ items, accentColor }: Props) {
               boxShadow: fortnight === f ? '0 4px 12px rgba(15,23,42,0.25)' : 'none',
             }}
           >
-            {f === 1 ? '1st – 15th May' : '16th – 31st May'}
+            {f === 1 ? label1 : label2}
           </button>
         ))}
       </div>
@@ -53,7 +63,7 @@ export default function TopItems({ items, accentColor }: Props) {
         {/* Header */}
         <div style={{ background: `linear-gradient(135deg,${accentColor},#ea580c)`, padding: '14px 22px' }}>
           <span style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
-            May 2026 · {fortnight === 1 ? '1st – 15th' : '16th – 31st'}
+            {headerLabel}
           </span>
         </div>
 

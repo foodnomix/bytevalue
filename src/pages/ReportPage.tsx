@@ -250,7 +250,7 @@ export default function ReportPage() {
               <PayoutBreakdown periods={payout} accentColor={color} platform={platform} />
               <PerformanceOverview periods={performance} accentColor={color} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <TopItems items={topItems} accentColor={color} />
+                <TopItems items={topItems} accentColor={color} month={report.month} year={report.year} />
                 <UniqueItems count={ledger.length} />
                 <ItemLedger items={ledger} accentColor={color} />
               </div>
