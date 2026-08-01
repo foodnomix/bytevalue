@@ -35,7 +35,7 @@ export default function PerformanceOverview({ periods, accentColor }: Props) {
       <SectionHeading
         title="Performance Overview"
         accentColor={accentColor}
-        tooltip="Key order and revenue metrics for each settlement period — total orders, gross revenue, discounts applied, and average order value."
+        tooltip="Tracks order and revenue activity for the selected period. Shows total orders placed (delivered + cancelled), gross subtotal before discounts, total discounts applied, and average order value per order."
       />
 
       {/* Period tabs */}
@@ -66,9 +66,12 @@ export default function PerformanceOverview({ periods, accentColor }: Props) {
               value={<AnimatedNumber value={p.total_orders} />}
               delay={0}
               sub={
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, background: '#dbeafe', color: '#1d4ed8', borderRadius: 7, padding: '3px 8px' }}>{p.delivered} Delivered</span>
-                  {p.cancelled > 0 && <span style={{ fontSize: 10, fontWeight: 700, background: '#fee2e2', color: '#dc2626', borderRadius: 7, padding: '3px 8px' }}>{p.cancelled} Cancelled</span>}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, background: '#dbeafe', color: '#1d4ed8', borderRadius: 7, padding: '3px 8px' }}>{p.delivered} Delivered</span>
+                    {p.cancelled > 0 && <span style={{ fontSize: 10, fontWeight: 700, background: '#fee2e2', color: '#dc2626', borderRadius: 7, padding: '3px 8px' }}>{p.cancelled} Cancelled</span>}
+                  </div>
+                  <p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>All orders placed this period, delivered + cancelled</p>
                 </div>
               }
             />
@@ -77,7 +80,7 @@ export default function PerformanceOverview({ periods, accentColor }: Props) {
               accentColor={accentColor}
               value={<AnimatedNumber value={p.gross_subtotal} format={INR} />}
               delay={0.05}
-              sub={<p style={{ fontSize: 10, fontWeight: 600, color: '#94a3b8' }}>Pure item revenue</p>}
+              sub={<p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>Item value before any discounts</p>}
             />
             <StatCard
               label="Total Discounts"
@@ -85,7 +88,12 @@ export default function PerformanceOverview({ periods, accentColor }: Props) {
               stripColor="#f43f5e"
               value={<AnimatedNumber value={p.discounts} format={INR} />}
               delay={0.1}
-              sub={<p style={{ fontSize: 10, fontWeight: 600, color: '#94a3b8' }}>{((p.discounts / p.gross_subtotal) * 100).toFixed(1)}% of subtotal</p>}
+              sub={
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', margin: 0 }}>{((p.discounts / p.gross_subtotal) * 100).toFixed(1)}% of subtotal</p>
+                  <p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>Total customer discounts as % of gross subtotal</p>
+                </div>
+              }
             />
             <StatCard
               label="Avg Order Value"
@@ -94,7 +102,7 @@ export default function PerformanceOverview({ periods, accentColor }: Props) {
               stripColor="#10b981"
               value={<AnimatedNumber value={p.aov} format={v => INR(Math.round(v))} />}
               delay={0.15}
-              sub={<p style={{ fontSize: 10, fontWeight: 600, color: '#94a3b8' }}>Based on Net Value (A)</p>}
+              sub={<p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>Net order value divided by total orders</p>}
             />
           </div>
 

@@ -37,10 +37,20 @@ export default function SectionHeading({ title, tooltip, accentColor = '#FC8019'
       {tooltip && (
         <button
           onClick={() => setOpen(v => !v)}
-          style={{ background: 'none', border: 'none', padding: 2, cursor: 'pointer', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+          style={{
+            background: open ? `${accentColor}18` : '#f1f5f9',
+            border: `1px solid ${open ? accentColor + '44' : '#e2e8f0'}`,
+            borderRadius: 8,
+            padding: '3px 7px',
+            cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 4,
+            flexShrink: 0,
+            transition: 'all 0.2s',
+          }}
           aria-label="More info"
         >
-          <Info size={15} style={{ color: open ? accentColor : '#94a3b8', transition: 'color 0.2s' }} />
+          <Info size={13} style={{ color: open ? accentColor : '#64748b', transition: 'color 0.2s' }} />
+          <span style={{ fontSize: 10, fontWeight: 700, color: open ? accentColor : '#64748b', transition: 'color 0.2s' }}>Info</span>
         </button>
       )}
 

@@ -13,9 +13,9 @@ interface Props {
 
 const CARD_DEFS = [
   { key: 'customer_paid', label: 'Net Order Value', color: '#10b981', icon: '↑', subtitle: 'Amount you retain before fees, taxes & ads' },
-  { key: 'platform_fee',  label: 'Platform Fee',    color: '#f43f5e', icon: '↓', subtitle: null },
-  { key: 'govt_tax',      label: 'Govt. Taxes',     color: '#f59e0b', icon: '↓', subtitle: null },
-  { key: 'ads_spend',     label: 'Ads & Promo',     color: '#8b5cf6', icon: '↓', subtitle: null },
+  { key: 'platform_fee',  label: 'Platform Fee',    color: '#f43f5e', icon: '↓', subtitle: 'Base commission + payment gateway charges' },
+  { key: 'govt_tax',      label: 'Govt. Taxes',     color: '#f59e0b', icon: '↓', subtitle: '18% GST applied on platform fee' },
+  { key: 'ads_spend',     label: 'Ads & Promo',     color: '#8b5cf6', icon: '↓', subtitle: 'Spend on visibility + customer discounts funded by you' },
 ] as const
 
 export default function PayoutBreakdown({ periods, accentColor }: Props) {
@@ -41,7 +41,7 @@ export default function PayoutBreakdown({ periods, accentColor }: Props) {
       <SectionHeading
         title="Payout Breakdown"
         accentColor={accentColor}
-        tooltip="Shows how your customer payment is distributed — what you keep as net payout vs. what goes to platform fees, government taxes, and promotions."
+        tooltip="Breaks down where your order revenue goes. Net Order Value is your starting amount; Platform Fee, Govt. Taxes, and Ads & Promo are deducted from it to arrive at your Final Net Payout — the amount actually deposited in your account."
       />
 
       {/* Deduction cards */}
@@ -139,6 +139,9 @@ export default function PayoutBreakdown({ periods, accentColor }: Props) {
           <div style={{ fontSize: 'clamp(1.7rem, 5vw, 2.8rem)', fontWeight: 900, color: '#fff', lineHeight: 1.1, overflowWrap: 'break-word' }}>
             <AnimatedNumber value={overall.net_payout} format={INR} duration={1100} />
           </div>
+          <p style={{ fontSize: 10, fontWeight: 500, color: '#475569', marginTop: 6, lineHeight: 1.5 }}>
+            What actually lands in your account after all deductions
+          </p>
 
           {/* Retention badge */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 10, background: 'rgba(16,185,129,0.14)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 8, padding: '4px 10px' }}>
