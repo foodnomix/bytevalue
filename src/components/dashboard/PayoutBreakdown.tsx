@@ -15,7 +15,7 @@ const CARD_DEFS = [
   { key: 'customer_paid', label: 'Net Order Value', color: '#10b981', icon: '↑', subtitle: 'Amount you retain before fees, taxes & ads' },
   { key: 'platform_fee',  label: 'Platform Fee',    color: '#f43f5e', icon: '↓', subtitle: 'Base commission + payment gateway charges' },
   { key: 'govt_tax',      label: 'Govt. Taxes',     color: '#f59e0b', icon: '↓', subtitle: '18% GST applied on platform fee' },
-  { key: 'ads_spend',     label: 'Ads & Promo',     color: '#8b5cf6', icon: '↓', subtitle: 'Spend on visibility + customer discounts funded by you' },
+  { key: 'ads_spend',     label: 'Ads & Promo',     color: '#8b5cf6', icon: '↓', subtitle: 'Spend on visibility' },
 ] as const
 
 export default function PayoutBreakdown({ periods, accentColor }: Props) {
