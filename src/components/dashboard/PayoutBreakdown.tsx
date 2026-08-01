@@ -12,10 +12,10 @@ interface Props {
 }
 
 const CARD_DEFS = [
-  { key: 'customer_paid', label: 'Subtotal', color: '#10b981', icon: '↑' },
-  { key: 'platform_fee',  label: 'Platform Fee',  color: '#f43f5e', icon: '↓' },
-  { key: 'govt_tax',      label: 'Govt. Taxes',   color: '#f59e0b', icon: '↓' },
-  { key: 'ads_spend',     label: 'Ads & Promo',   color: '#8b5cf6', icon: '↓' },
+  { key: 'customer_paid', label: 'Net Order Value', color: '#10b981', icon: '↑', subtitle: 'Amount you retain before fees, taxes & ads' },
+  { key: 'platform_fee',  label: 'Platform Fee',    color: '#f43f5e', icon: '↓', subtitle: null },
+  { key: 'govt_tax',      label: 'Govt. Taxes',     color: '#f59e0b', icon: '↓', subtitle: null },
+  { key: 'ads_spend',     label: 'Ads & Promo',     color: '#8b5cf6', icon: '↓', subtitle: null },
 ] as const
 
 export default function PayoutBreakdown({ periods, accentColor }: Props) {
@@ -86,6 +86,11 @@ export default function PayoutBreakdown({ periods, accentColor }: Props) {
               {/* Percentage */}
               {pct !== null && (
                 <p style={{ fontSize: 10, fontWeight: 700, color: `${def.color}bb`, marginTop: 6 }}>{pct}% of revenue</p>
+              )}
+
+              {/* Subtitle */}
+              {def.subtitle && (
+                <p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8', marginTop: 6, lineHeight: 1.5 }}>{def.subtitle}</p>
               )}
             </motion.div>
           )
