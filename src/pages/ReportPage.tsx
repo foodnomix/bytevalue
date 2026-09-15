@@ -251,7 +251,7 @@ export default function ReportPage() {
               <PerformanceOverview periods={performance} accentColor={color} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <TopItems items={topItems} accentColor={color} month={report.month} year={report.year} />
-                <UniqueItems count={ledger.length} />
+                <UniqueItems count={ledger.length} month={report.month} year={report.year} />
                 <ItemLedger items={ledger} accentColor={color} />
               </div>
             </motion.div>
