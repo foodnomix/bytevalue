@@ -242,21 +242,7 @@ export default function ReportPage() {
                   </span>
                   <span style={{ color: `${color}66` }}>·</span>
                   <span style={{ fontSize: 11, fontWeight: 800, color: platform === 'swiggy' ? '#7c2d12' : '#9f1239' }}>
-                    {(() => {
-                      try {
-                        const sorted = performance?.filter((p) => p.sort_order > 0).sort((a, b) => a.sort_order - b.sort_order) || []
-                        if (sorted.length > 0) {
-                          const first = sorted[0].period_label?.split(' ')[0]
-                          const last = sorted[sorted.length - 1].period_label?.split(' – ')[1]?.split(' ')[0]
-                          if (first && last) {
-                            return `${first} ${MONTH_NAMES[report.month]} – ${last} ${MONTH_NAMES[report.month]} ${report.year}`
-                          }
-                        }
-                      } catch (e) {
-                        // Fallback to original logic
-                      }
-                      return `${new Date(report.date_from).getDate()} ${MONTH_NAMES[report.month]} – ${new Date(report.date_to).getDate()} ${MONTH_NAMES[report.month]} ${report.year}`
-                    })()}
+                    {MONTH_NAMES[report.month]} {report.year}
                   </span>
                 </div>
               </motion.div>
