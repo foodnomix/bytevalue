@@ -4,20 +4,40 @@ export interface Restaurant {
   id: string
   code: string
   name: string
-  location: string
-  city: string
+  email: string | null
+  phone: string | null
+  city: string | null
+  state: string | null
+  platform_ids: Record<string, string>
+  tags: string[]
+  onboarding_date: string | null
+  months_paid: number
+  status: 'active' | 'paused' | 'expired'
   created_at?: string
+  updated_at?: string
 }
 
 export interface Report {
   id: string
   restaurant_id: string
-  platform: Platform
+  platform_id: string
   month: number
   year: number
-  date_from: string
-  date_to: string
+  period_type: 'MONTHLY' | 'WEEKLY' | 'BI_WEEKLY'
+  period_number: number | null
+  period_start_date: string | null
+  period_end_date: string | null
+  status: 'generated' | 'draft' | 'error'
   created_at?: string
+  updated_at?: string
+}
+
+export interface PlatformRecord {
+  id: string
+  name: string
+  display_name: string
+  color_code: string
+  is_active: boolean
 }
 
 export interface PayoutPeriod {
@@ -54,10 +74,13 @@ export interface PerformancePeriod {
 export interface TopItem {
   id: string
   report_id: string
-  fortnight: 1 | 2
+  period_identifier: string | null
+  fortnight: number
   rank: number
   item_name: string
   units: number
+  revenue: number | null
+  revenue_percentage: number | null
 }
 
 export interface LedgerItem {
@@ -65,7 +88,32 @@ export interface LedgerItem {
   report_id: string
   item_name: string
   units_sold: number
-  net_per_unit: number
-  total_net_payout: number
-  margin_pct: number
+  original_price: number | null
+  net_per_unit: number | null
+  total_net_payout: number | null
+  margin_pct: number | null
+  discount_pct: number | null
+}
+
+export interface Admin {
+  id: string
+  email: string
+  name: string
+  role: 'developer' | 'super_admin' | 'view_only'
+  tags: string[]
+  status: 'active' | 'inactive'
+  created_by: string | null
+  created_at: string
+  last_login_at: string | null
+}
+
+export interface ActivityLogEntry {
+  id: string
+  admin_id: string | null
+  action: string
+  entity_type: string | null
+  entity_id: string | null
+  details: string | null
+  ip_address: string | null
+  created_at: string
 }

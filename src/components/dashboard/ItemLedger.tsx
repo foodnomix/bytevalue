@@ -73,8 +73,8 @@ function Row({ item, rank, accentColor, dark }: {
 
       {/* Net/unit + margin */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0, zIndex: 1 }}>
-        <span style={{ fontSize: 11, fontWeight: 600, color: textNum }}>{INR(item.net_per_unit)}</span>
-        <MarginBadge pct={item.margin_pct} />
+        <span style={{ fontSize: 11, fontWeight: 600, color: textNum }}>{INR(item.net_per_unit ?? 0)}</span>
+        <MarginBadge pct={item.margin_pct ?? 0} />
       </div>
 
       {/* Total payout */}
@@ -82,7 +82,7 @@ function Row({ item, rank, accentColor, dark }: {
         fontSize: 12, fontWeight: 900,
         color: dark ? '#6ee7b7' : '#059669',
         flexShrink: 0, zIndex: 1, minWidth: 64, textAlign: 'right',
-      }}>{INR(item.total_net_payout)}</span>
+      }}>{INR(item.total_net_payout ?? 0)}</span>
     </motion.div>
   )
 }

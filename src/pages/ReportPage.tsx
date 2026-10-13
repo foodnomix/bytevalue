@@ -1,9 +1,12 @@
 import { useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, LogOut, ChevronDown } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
 import { useRestaurantByCode } from '../hooks/useRestaurantByCode'
 import { useReport } from '../hooks/useReport'
+import { useReportList } from '../hooks/useReportList'
+import { usePlatforms } from '../hooks/usePlatforms'
 import { MONTH_NAMES, PLATFORM_COLOR } from '../lib/format'
 import Loader from '../components/ui/Loader'
 import PayoutBreakdown from '../components/dashboard/PayoutBreakdown'
@@ -23,29 +26,61 @@ const PLATFORM_ORDER: Platform[] = ['swiggy', 'zomato']
 
 export default function ReportPage() {
   const { code = '' } = useParams<{ code: string }>()
+  const { user, logout } = useAuth()
   const [showLoader, setShowLoader] = useState(true)
   const [platform, setPlatform] = useState<Platform>('swiggy')
+  const [selectedMonth, setSelectedMonth] = useState<number | undefined>()
+  const [selectedYear, setSelectedYear] = useState<number | undefined>()
+  const [showHistory, setShowHistory] = useState(false)
   const prevPlatformRef = useRef<Platform>('swiggy')
 
-  const { restaurant, loading: restLoading, notFound } = useRestaurantByCode(code)
+  const isAuthenticated = user?.type === 'restaurant'
+  const restaurantId = isAuthenticated ? user.id : undefined
+
+  // Legacy code-based access
+  const { restaurant: codeRestaurant, loading: codeLoading, notFound: codeNotFound } =
+    useRestaurantByCode(isAuthenticated ? '' : code)
+
+  const activeRestaurantId = restaurantId || codeRestaurant?.id || ''
+  const restaurantName = isAuthenticated ? user.name : codeRestaurant?.name
+
+  const { platforms, getPlatformId } = usePlatforms()
+  const platformId = getPlatformId(platform) || ''
+
   const { report, payout, performance, topItems, ledger, loading: dataLoading } = useReport(
-    restaurant?.id ?? '',
-    platform
+    activeRestaurantId,
+    platformId,
+    selectedMonth,
+    selectedYear,
   )
 
-  const color = PLATFORM_COLOR[platform]
-  const dataLoaded = !restLoading && !dataLoading
+  const { reports: reportList } = useReportList(activeRestaurantId)
 
-  // Direction for slide animation
+  const restLoading = isAuthenticated ? false : codeLoading
+  const notFound = isAuthenticated ? false : codeNotFound
+  const color = PLATFORM_COLOR[platform]
+  const dataLoaded = !restLoading && !dataLoading && platforms.length > 0
+
   const direction = PLATFORM_ORDER.indexOf(platform) > PLATFORM_ORDER.indexOf(prevPlatformRef.current) ? 1 : -1
 
   function switchPlatform(p: Platform) {
     prevPlatformRef.current = platform
     setPlatform(p)
+    setSelectedMonth(undefined)
+    setSelectedYear(undefined)
   }
 
-  // ── Not found ─────────────────────────────────────────────────────────
-  if (!restLoading && !showLoader && notFound) {
+  function selectReport(month: number, year: number) {
+    setSelectedMonth(month)
+    setSelectedYear(year)
+    setShowHistory(false)
+  }
+
+  // History entries for current platform
+  const historyForPlatform = reportList.filter(r => r.platform_id === platformId)
+
+  // ---- Not found (legacy code access only) ----
+  if (!restLoading && !showLoader && notFound && !isAuthenticated) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center', ...TEXTURE }}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
@@ -65,12 +100,12 @@ export default function ReportPage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', ...TEXTURE }}>
 
-      {/* ── Loader overlay ───────────────────────────────────────────── */}
+      {/* Loader overlay */}
       <AnimatePresence>
         {showLoader && <Loader onDone={() => setShowLoader(false)} />}
       </AnimatePresence>
 
-      {/* ── Header: logo only ────────────────────────────────────────── */}
+      {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -83,12 +118,36 @@ export default function ReportPage() {
           alignItems: 'center',
           justifyContent: 'center',
           borderBottom: '1px solid rgba(255,255,255,0.06)',
+          position: 'relative',
         }}
       >
         <img src="/bytevalue-logo.png" alt="ByteValue" style={{ height: 42, width: 'auto', objectFit: 'contain' }} />
+        {isAuthenticated && (
+          <button
+            onClick={logout}
+            style={{
+              position: 'absolute',
+              right: 20,
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 8,
+              padding: '6px 12px',
+              color: '#94a3b8',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <LogOut size={14} />
+            Logout
+          </button>
+        )}
       </motion.header>
 
-      {/* ── Restaurant name + platform switcher ──────────────────────── */}
+      {/* Restaurant name + platform switcher */}
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -115,7 +174,7 @@ export default function ReportPage() {
               animate={{ opacity: 1, y: 0 }}
               style={{ fontSize: 'clamp(1.1rem,3.5vw,1.55rem)', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.2, overflowWrap: 'break-word' }}
             >
-              {restaurant?.name}
+              {restaurantName}
             </motion.h1>
           )}
         </div>
@@ -181,11 +240,11 @@ export default function ReportPage() {
         </motion.div>
       </motion.div>
 
-      {/* ── Main content ─────────────────────────────────────────────── */}
+      {/* Main content */}
       <div style={{ flex: 1, maxWidth: 1280, margin: '0 auto', width: '100%', padding: '28px 20px 24px' }}>
         <AnimatePresence mode="wait" custom={direction}>
 
-          {/* Data loading spinner (after loader, while fetching) */}
+          {/* Data loading spinner */}
           {!showLoader && !dataLoaded && (
             <motion.div key="spinner"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -205,7 +264,9 @@ export default function ReportPage() {
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               style={{ textAlign: 'center', padding: '100px 20px' }}
             >
-              <div style={{ width: 64, height: 64, borderRadius: 18, background: '#fff', border: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 28 }}>📊</div>
+              <div style={{ width: 64, height: 64, borderRadius: 18, background: '#fff', border: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 28 }}>
+                <AlertCircle size={28} color="#94a3b8" />
+              </div>
               <h2 style={{ fontSize: 18, fontWeight: 900, color: '#1e293b', margin: '0 0 8px' }}>
                 No {platform === 'swiggy' ? 'Swiggy' : 'Zomato'} data yet
               </h2>
@@ -216,7 +277,7 @@ export default function ReportPage() {
           {/* Dashboard */}
           {!showLoader && dataLoaded && report && (
             <motion.div
-              key={`${restaurant?.id}-${platform}`}
+              key={`${activeRestaurantId}-${platform}-${report.month}-${report.year}`}
               custom={direction}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -224,11 +285,12 @@ export default function ReportPage() {
               transition={{ duration: 0.3, ease: 'easeInOut' }}
               style={{ display: 'flex', flexDirection: 'column', gap: 36 }}
             >
-              {/* Date range pill */}
+              {/* Date range pill + history dropdown */}
               <motion.div
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.05 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}
               >
                 <div style={{
                   display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -245,6 +307,46 @@ export default function ReportPage() {
                     {MONTH_NAMES[report.month]} {report.year}
                   </span>
                 </div>
+
+                {/* History button */}
+                {isAuthenticated && historyForPlatform.length > 1 && (
+                  <div style={{ position: 'relative' }}>
+                    <button
+                      onClick={() => setShowHistory(!showHistory)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 4,
+                        background: '#fff', border: '1px solid #e2e8f0', borderRadius: 999,
+                        padding: '5px 12px', fontSize: 11, fontWeight: 700, color: '#64748b',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Previous months
+                      <ChevronDown size={12} style={{ transform: showHistory ? 'rotate(180deg)' : undefined, transition: 'transform 0.2s' }} />
+                    </button>
+                    {showHistory && (
+                      <div style={{
+                        position: 'absolute', top: '100%', left: 0, marginTop: 4, zIndex: 10,
+                        background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12,
+                        padding: 6, minWidth: 160, boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                      }}>
+                        {historyForPlatform.map(r => (
+                          <button
+                            key={r.id}
+                            onClick={() => selectReport(r.month, r.year)}
+                            style={{
+                              display: 'block', width: '100%', textAlign: 'left',
+                              padding: '8px 12px', border: 'none', borderRadius: 8,
+                              background: r.month === report.month && r.year === report.year ? `${color}15` : 'transparent',
+                              color: '#1e293b', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                            }}
+                          >
+                            {MONTH_NAMES[r.month]} {r.year}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </motion.div>
 
               <PayoutBreakdown periods={payout} accentColor={color} platform={platform} />
@@ -260,7 +362,7 @@ export default function ReportPage() {
         </AnimatePresence>
       </div>
 
-      {/* ── Footer ───────────────────────────────────────────────────── */}
+      {/* Footer */}
       <footer style={{
         padding: '14px 24px',
         borderTop: '1px solid #ede9e4',
@@ -287,7 +389,6 @@ export default function ReportPage() {
           />
         </div>
       </footer>
-
     </div>
   )
 }
