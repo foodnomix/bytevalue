@@ -238,7 +238,7 @@ export default function ReportPage() {
           {/* Dashboard */}
           {!showLoader && dataLoaded && report && (
             <motion.div
-              key={`${activeRestaurantId}-${platform}-${report.month}-${report.year}`}
+              key={`${restaurantId}-${platform}-${report.month}-${report.year}`}
               custom={direction}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
