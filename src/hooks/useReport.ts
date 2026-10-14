@@ -14,7 +14,7 @@ interface ReportData {
 
 export function useReport(
   restaurantId: string,
-  platformId: string,
+  platform: string,
   month?: number,
   year?: number,
 ): ReportData {
@@ -23,7 +23,7 @@ export function useReport(
   })
 
   useEffect(() => {
-    if (!restaurantId || !platformId) return
+    if (!restaurantId || !platform) return
     setData(d => ({ ...d, loading: true, error: null }))
 
     async function fetchAll() {
@@ -32,7 +32,7 @@ export function useReport(
           .from('reports')
           .select('*')
           .eq('restaurant_id', restaurantId)
-          .eq('platform_id', platformId)
+          .eq('platform', platform)
 
         if (month && year) {
           query = query.eq('month', month).eq('year', year)
@@ -69,7 +69,7 @@ export function useReport(
     }
 
     fetchAll()
-  }, [restaurantId, platformId, month, year])
+  }, [restaurantId, platform, month, year])
 
   return data
 }

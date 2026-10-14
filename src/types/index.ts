@@ -2,7 +2,6 @@ export type Platform = 'swiggy' | 'zomato'
 
 export interface Restaurant {
   id: string
-  code: string
   name: string
   email: string | null
   phone: string | null
@@ -20,7 +19,7 @@ export interface Restaurant {
 export interface Report {
   id: string
   restaurant_id: string
-  platform_id: string
+  platform: Platform
   month: number
   year: number
   period_type: 'MONTHLY' | 'WEEKLY' | 'BI_WEEKLY'
@@ -30,14 +29,6 @@ export interface Report {
   status: 'generated' | 'draft' | 'error'
   created_at?: string
   updated_at?: string
-}
-
-export interface PlatformRecord {
-  id: string
-  name: string
-  display_name: string
-  color_code: string
-  is_active: boolean
 }
 
 export interface PayoutPeriod {

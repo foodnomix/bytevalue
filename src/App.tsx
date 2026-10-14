@@ -36,9 +36,6 @@ export default function App() {
             <AdminGuard><div>Admin dashboard (coming soon)</div></AdminGuard>
           } />
 
-          {/* Legacy: /:code still works for backward compat during transition */}
-          <Route path="/:code" element={<ReportPage />} />
-
           {/* Default redirect */}
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/login" replace />} />

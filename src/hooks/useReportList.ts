@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import type { Platform } from '../types'
 
 interface ReportSummary {
   id: string
-  platform_id: string
+  platform: Platform
   month: number
   year: number
   period_type: string
@@ -20,7 +21,7 @@ export function useReportList(restaurantId: string) {
 
     supabase
       .from('reports')
-      .select('id, platform_id, month, year, period_type, status')
+      .select('id, platform, month, year, period_type, status')
       .eq('restaurant_id', restaurantId)
       .order('year', { ascending: false })
       .order('month', { ascending: false })

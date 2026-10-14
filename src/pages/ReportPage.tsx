@@ -1,12 +1,9 @@
 import { useState, useRef } from 'react'
-import { useParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertCircle, LogOut, ChevronDown } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import { useRestaurantByCode } from '../hooks/useRestaurantByCode'
 import { useReport } from '../hooks/useReport'
 import { useReportList } from '../hooks/useReportList'
-import { usePlatforms } from '../hooks/usePlatforms'
 import { MONTH_NAMES, PLATFORM_COLOR } from '../lib/format'
 import Loader from '../components/ui/Loader'
 import PayoutBreakdown from '../components/dashboard/PayoutBreakdown'
@@ -25,7 +22,6 @@ const TEXTURE: React.CSSProperties = {
 const PLATFORM_ORDER: Platform[] = ['swiggy', 'zomato']
 
 export default function ReportPage() {
-  const { code = '' } = useParams<{ code: string }>()
   const { user, logout } = useAuth()
   const [showLoader, setShowLoader] = useState(true)
   const [platform, setPlatform] = useState<Platform>('swiggy')
@@ -34,32 +30,20 @@ export default function ReportPage() {
   const [showHistory, setShowHistory] = useState(false)
   const prevPlatformRef = useRef<Platform>('swiggy')
 
-  const isAuthenticated = user?.type === 'restaurant'
-  const restaurantId = isAuthenticated ? user.id : undefined
-
-  // Legacy code-based access
-  const { restaurant: codeRestaurant, loading: codeLoading, notFound: codeNotFound } =
-    useRestaurantByCode(isAuthenticated ? '' : code)
-
-  const activeRestaurantId = restaurantId || codeRestaurant?.id || ''
-  const restaurantName = isAuthenticated ? user.name : codeRestaurant?.name
-
-  const { platforms, getPlatformId } = usePlatforms()
-  const platformId = getPlatformId(platform) || ''
+  const restaurantId = user?.type === 'restaurant' ? user.id : ''
+  const restaurantName = user?.type === 'restaurant' ? user.name : ''
 
   const { report, payout, performance, topItems, ledger, loading: dataLoading } = useReport(
-    activeRestaurantId,
-    platformId,
+    restaurantId,
+    platform,
     selectedMonth,
     selectedYear,
   )
 
-  const { reports: reportList } = useReportList(activeRestaurantId)
+  const { reports: reportList } = useReportList(restaurantId)
 
-  const restLoading = isAuthenticated ? false : codeLoading
-  const notFound = isAuthenticated ? false : codeNotFound
   const color = PLATFORM_COLOR[platform]
-  const dataLoaded = !restLoading && !dataLoading && platforms.length > 0
+  const dataLoaded = !dataLoading
 
   const direction = PLATFORM_ORDER.indexOf(platform) > PLATFORM_ORDER.indexOf(prevPlatformRef.current) ? 1 : -1
 
@@ -76,26 +60,7 @@ export default function ReportPage() {
     setShowHistory(false)
   }
 
-  // History entries for current platform
-  const historyForPlatform = reportList.filter(r => r.platform_id === platformId)
-
-  // ---- Not found (legacy code access only) ----
-  if (!restLoading && !showLoader && notFound && !isAuthenticated) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center', ...TEXTURE }}>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <div style={{ width: 72, height: 72, borderRadius: 20, background: '#fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-            <AlertCircle size={34} color="#dc2626" />
-          </div>
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: '0 0 10px' }}>Report not found</h1>
-          <p style={{ fontSize: 13, color: '#64748b', maxWidth: 320, margin: '0 auto', lineHeight: 1.6 }}>
-            The code <code style={{ background: '#f1f5f9', padding: '2px 8px', borderRadius: 6, fontWeight: 700, color: '#1e293b' }}>{code}</code> doesn't match any restaurant. Please check your link.
-          </p>
-          <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 32, fontWeight: 600 }}>Powered by Foodnomix</p>
-        </motion.div>
-      </div>
-    )
-  }
+  const historyForPlatform = reportList.filter(r => r.platform === platform)
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', ...TEXTURE }}>
@@ -122,7 +87,7 @@ export default function ReportPage() {
         }}
       >
         <img src="/bytevalue-logo.png" alt="ByteValue" style={{ height: 42, width: 'auto', objectFit: 'contain' }} />
-        {isAuthenticated && (
+        {user && (
           <button
             onClick={logout}
             style={{
@@ -166,17 +131,13 @@ export default function ReportPage() {
       >
         <div style={{ minWidth: 0 }}>
           <p style={{ fontSize: 9, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.18em', margin: '0 0 3px' }}>Restaurant</p>
-          {restLoading ? (
-            <div style={{ height: 26, width: 180, background: '#f1f5f9', borderRadius: 8 }} />
-          ) : (
-            <motion.h1
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              style={{ fontSize: 'clamp(1.1rem,3.5vw,1.55rem)', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.2, overflowWrap: 'break-word' }}
-            >
-              {restaurantName}
-            </motion.h1>
-          )}
+          <motion.h1
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{ fontSize: 'clamp(1.1rem,3.5vw,1.55rem)', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.2, overflowWrap: 'break-word' }}
+          >
+            {restaurantName}
+          </motion.h1>
         </div>
 
         {/* Platform tabs */}
@@ -309,7 +270,7 @@ export default function ReportPage() {
                 </div>
 
                 {/* History button */}
-                {isAuthenticated && historyForPlatform.length > 1 && (
+                {historyForPlatform.length > 1 && (
                   <div style={{ position: 'relative' }}>
                     <button
                       onClick={() => setShowHistory(!showHistory)}
