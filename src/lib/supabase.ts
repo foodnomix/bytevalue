@@ -10,9 +10,13 @@ if (!url || !key) {
 
 export const supabase = createClient(url || 'https://placeholder.supabase.co', key || 'placeholder', {
   global: {
-    headers: (() => {
+    fetch: (input, init) => {
       const token = getToken()
-      return token ? { Authorization: `Bearer ${token}` } : {}
-    }) as unknown as Record<string, string>,
+      const headers = new Headers(init?.headers)
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`)
+      }
+      return fetch(input, { ...init, headers })
+    },
   },
 })
