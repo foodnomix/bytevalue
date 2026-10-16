@@ -3,8 +3,8 @@ export type Platform = 'swiggy' | 'zomato'
 export interface Restaurant {
   id: string
   name: string
-  email: string | null
-  phone: string | null
+  email: string
+  phone: string
   city: string | null
   state: string | null
   platform_ids: Record<string, string>
