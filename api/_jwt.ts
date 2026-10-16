@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken'
+import * as jwt from 'jsonwebtoken'
 import { randomUUID } from 'crypto'
 
 const JWT_SECRET = () => {

@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import bcrypt from 'bcryptjs'
+import * as bcrypt from 'bcryptjs'
 import { adminClient } from '../_supabase'
 import { signAdminToken } from '../_jwt'
 
