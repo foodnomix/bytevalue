@@ -5,6 +5,7 @@ export interface Restaurant {
   name: string
   email: string
   phone: string
+  phone2: string | null
   city: string | null
   state: string | null
   platform_ids: Record<string, string>
@@ -36,6 +37,7 @@ export interface PayoutPeriod {
   report_id: string
   period_label: string
   sort_order: number
+  net_sales: number
   customer_paid: number
   platform_fee: number
   platform_fee_pct: number
@@ -45,6 +47,8 @@ export interface PayoutPeriod {
   ads_spend_pct: number
   net_payout: number
   net_payout_pct: number
+  retained_pct: number
+  complaints: number
 }
 
 export interface PerformancePeriod {

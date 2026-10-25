@@ -12,10 +12,11 @@ interface Props {
 }
 
 const CARD_DEFS = [
-  { key: 'customer_paid', label: 'Net Order Value', color: '#10b981', icon: '↑', subtitle: 'Amount you retain before fees, taxes & ads' },
+  { key: 'net_sales', label: 'Net Order Value', color: '#10b981', icon: '↑', subtitle: 'Amount you retain before fees, taxes & ads' },
   { key: 'platform_fee',  label: 'Platform Fee',    color: '#f43f5e', icon: '↓', subtitle: 'Base commission + payment gateway charges' },
   { key: 'govt_tax',      label: 'Govt. Taxes',     color: '#f59e0b', icon: '↓', subtitle: '18% GST applied on platform fee' },
   { key: 'ads_spend',     label: 'Ads & Promo',     color: '#8b5cf6', icon: '↓', subtitle: 'Spend on visibility' },
+  { key: 'complaints',    label: 'Complaints',      color: '#ef4444', icon: '↓', subtitle: 'Deductions from customer complaints' },
 ] as const
 
 export default function PayoutBreakdown({ periods, accentColor }: Props) {
@@ -23,14 +24,17 @@ export default function PayoutBreakdown({ periods, accentColor }: Props) {
   if (!overall) return null
 
   const values: Record<string, { value: number; pct: number | null }> = {
-    customer_paid: { value: overall.customer_paid, pct: null },
+    net_sales:     { value: overall.net_sales ?? overall.customer_paid, pct: null },
     platform_fee:  { value: overall.platform_fee,  pct: overall.platform_fee_pct },
     govt_tax:      { value: overall.govt_tax,       pct: overall.govt_tax_pct },
     ads_spend:     { value: overall.ads_spend,      pct: overall.ads_spend_pct },
+    complaints:    { value: overall.complaints ?? 0, pct: null },
   }
 
+  const retainedPct = overall.retained_pct ?? overall.net_payout_pct
+
   const donutSegments = [
-    { value: overall.net_payout_pct,   color: '#10b981' },
+    { value: retainedPct,              color: '#10b981' },
     { value: overall.platform_fee_pct, color: 'rgba(255,255,255,0.18)' },
     { value: overall.govt_tax_pct,     color: 'rgba(255,255,255,0.10)' },
     { value: overall.ads_spend_pct,    color: 'rgba(255,255,255,0.06)' },
@@ -41,13 +45,14 @@ export default function PayoutBreakdown({ periods, accentColor }: Props) {
       <SectionHeading
         title="Payout Breakdown"
         accentColor={accentColor}
-        tooltip="Breaks down where your order revenue goes. Net Order Value is your starting amount; Platform Fee, Govt. Taxes, and Ads & Promo are deducted from it to arrive at your Final Net Payout — the amount actually deposited in your account."
+        tooltip="Breaks down where your order revenue goes. Net Order Value is your starting amount; Platform Fee, Govt. Taxes, Ads & Promo, and Complaints are deducted from it to arrive at your Final Net Payout."
       />
 
       {/* Deduction cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(155px, 1fr))', gap: 10, marginBottom: 10 }}>
         {CARD_DEFS.map((def, i) => {
           const { value, pct } = values[def.key]
+          if (def.key === 'complaints' && value === 0) return null
           return (
             <motion.div
               key={def.key}
@@ -63,7 +68,6 @@ export default function PayoutBreakdown({ periods, accentColor }: Props) {
                 padding: '16px 18px 18px',
               }}
             >
-              {/* Top row: label + icon badge */}
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
                 <p style={{ fontSize: 10, fontWeight: 800, color: def.color, textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0, lineHeight: 1.3 }}>{def.label}</p>
                 <div style={{
@@ -78,17 +82,14 @@ export default function PayoutBreakdown({ periods, accentColor }: Props) {
                 }}>{def.icon}</div>
               </div>
 
-              {/* Value */}
               <div style={{ fontSize: 'clamp(0.9rem, 3vw, 1.55rem)', fontWeight: 900, color: '#0f172a', lineHeight: 1.15, overflowWrap: 'break-word' }}>
                 <AnimatedNumber value={value} format={INR} />
               </div>
 
-              {/* Percentage */}
               {pct !== null && (
                 <p style={{ fontSize: 10, fontWeight: 700, color: `${def.color}bb`, marginTop: 6 }}>{pct}% of revenue</p>
               )}
 
-              {/* Subtitle */}
               {def.subtitle && (
                 <p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8', marginTop: 6, lineHeight: 1.5 }}>{def.subtitle}</p>
               )}
@@ -117,14 +118,12 @@ export default function PayoutBreakdown({ periods, accentColor }: Props) {
           boxShadow: `0 8px 32px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.06)`,
         }}
       >
-        {/* Platform color top bar */}
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, height: 3,
           background: `linear-gradient(90deg, ${accentColor}, ${accentColor}88)`,
           borderRadius: '20px 20px 0 0',
         }} />
 
-        {/* Subtle ambient glow */}
         <div style={{
           position: 'absolute', bottom: -50, left: -50,
           width: 180, height: 180, borderRadius: '50%',
@@ -143,10 +142,9 @@ export default function PayoutBreakdown({ periods, accentColor }: Props) {
             What actually lands in your account after all deductions
           </p>
 
-          {/* Retention badge */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 10, background: 'rgba(16,185,129,0.14)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 8, padding: '4px 10px' }}>
             <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#10b981' }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#6ee7b7' }}>{overall.net_payout_pct}% of revenue retained</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#6ee7b7' }}>{retainedPct}% of revenue retained</span>
           </div>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
@@ -156,13 +154,12 @@ export default function PayoutBreakdown({ periods, accentColor }: Props) {
           </div>
         </div>
 
-        {/* Donut — always visible */}
         <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'center', width: '100%', maxWidth: 140 }}>
           <DonutChart
             segments={donutSegments}
             size={88}
             strokeWidth={11}
-            centerLabel={`${overall.net_payout_pct}%`}
+            centerLabel={`${retainedPct}%`}
             centerSub="net"
           />
         </div>
