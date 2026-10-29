@@ -1,5 +1,4 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { adminClient } from '../_supabase'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
@@ -12,7 +11,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const trimmed = identifier.trim()
 
   try {
-    const supabase = adminClient()
+    const { createClient } = await import('@supabase/supabase-js')
+    const url = process.env.SUPABASE_URL!
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY!
+    const supabase = createClient(url, key)
 
     const { data: restaurants, error } = await supabase
       .from('restaurants')
@@ -20,8 +22,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .or(`phone.eq.${trimmed},phone2.eq.${trimmed},email.ilike.${trimmed}`)
 
     if (error) {
-      console.error('DB query error:', error)
-      return res.status(500).json({ error: 'Internal server error' })
+      return res.status(500).json({ error: 'DB query error', details: error.message })
     }
 
     const restaurant = restaurants?.[0]
@@ -42,8 +43,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         phone: restaurant.phone,
       },
     })
-  } catch (err) {
-    console.error('Restaurant login error:', err)
-    return res.status(500).json({ error: 'Internal server error' })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    return res.status(500).json({ error: 'Server error', details: msg })
   }
 }
