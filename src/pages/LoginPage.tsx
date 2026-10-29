@@ -5,6 +5,7 @@ import { loginRestaurant } from '../lib/auth'
 
 export default function LoginPage() {
   const [identifier, setIdentifier] = useState('')
+  const [pin, setPin] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { setUser } = useAuth()
@@ -15,7 +16,7 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      const user = await loginRestaurant(identifier)
+      const user = await loginRestaurant(identifier, pin)
       setUser(user)
       navigate('/reports')
     } catch (err) {
@@ -82,6 +83,34 @@ export default function LoginPage() {
             />
           </div>
 
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>
+              Security PIN
+            </label>
+            <input
+              type="password"
+              value={pin}
+              onChange={e => setPin(e.target.value)}
+              placeholder="Enter your PIN"
+              required
+              maxLength={10}
+              style={{
+                width: '100%',
+                padding: '12px 14px',
+                fontSize: 15,
+                border: '1.5px solid #e2e8f0',
+                borderRadius: 12,
+                outline: 'none',
+                background: '#fafaf9',
+                transition: 'border-color 0.2s',
+                boxSizing: 'border-box',
+                letterSpacing: '0.15em',
+              }}
+              onFocus={e => e.target.style.borderColor = '#94a3b8'}
+              onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+            />
+          </div>
+
           {error && (
             <p style={{ fontSize: 13, color: '#dc2626', background: '#fef2f2', padding: '10px 14px', borderRadius: 10, margin: 0, fontWeight: 600 }}>
               {error}
@@ -90,7 +119,7 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading || !identifier}
+            disabled={loading || !identifier || !pin}
             style={{
               padding: '14px',
               fontSize: 15,
