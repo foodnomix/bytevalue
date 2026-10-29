@@ -1,13 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import * as bcrypt from 'bcryptjs'
 import { adminClient } from '../_supabase'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const { identifier, pin } = req.body || {}
-  if (!identifier || !pin) {
-    return res.status(400).json({ error: 'Phone/email and PIN are required' })
+  const { identifier } = req.body || {}
+  if (!identifier) {
+    return res.status(400).json({ error: 'Phone or email is required' })
   }
 
   const trimmed = identifier.trim()
@@ -17,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const { data: restaurants, error } = await supabase
       .from('restaurants')
-      .select('id, name, email, phone, phone2, pin_hash, status')
+      .select('id, name, email, phone, phone2, status')
       .or(`phone.eq.${trimmed},phone2.eq.${trimmed},email.ilike.${trimmed}`)
 
     if (error) {
@@ -32,15 +31,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (restaurant.status !== 'active') {
       return res.status(403).json({ error: `Account is ${restaurant.status}` })
-    }
-
-    if (!restaurant.pin_hash) {
-      return res.status(401).json({ error: 'PIN not set. Contact support.' })
-    }
-
-    const pinValid = await bcrypt.compare(pin, restaurant.pin_hash)
-    if (!pinValid) {
-      return res.status(401).json({ error: 'Incorrect PIN' })
     }
 
     return res.status(200).json({

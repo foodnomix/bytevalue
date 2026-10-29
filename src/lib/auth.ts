@@ -45,11 +45,11 @@ export function clearAuth() {
   } catch { /* storage blocked */ }
 }
 
-export async function loginRestaurant(identifier: string, pin: string) {
+export async function loginRestaurant(identifier: string) {
   const res = await fetch('/api/auth/restaurant-login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ identifier, pin }),
+    body: JSON.stringify({ identifier }),
   })
   const data = await res.json()
   if (!res.ok) throw new Error(data.error || 'Login failed')
