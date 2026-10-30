@@ -557,7 +557,7 @@ export default function AdminDashboard() {
                     <tr><td colSpan={5} style={{ padding: 40, textAlign: 'center', color: '#475569' }}>No activity recorded yet</td></tr>
                   ) : activityLogs.map(log => {
                     const d = parseLogDetails(log.details)
-                    const targetName = d.restaurant_name || d.user_name || d.admin_name || ''
+                    const targetName = String(d.restaurant_name || d.user_name || d.admin_name || '')
                     return (
                       <tr key={log.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                         <td style={{ padding: '12px 16px', fontSize: 12, color: '#64748b', whiteSpace: 'nowrap' }}>
@@ -565,8 +565,8 @@ export default function AdminDashboard() {
                           {new Date(log.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                         </td>
                         <td style={{ padding: '12px 16px' }}>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9' }}>{d.admin_name || 'Unknown'}</div>
-                          <div style={{ fontSize: 11, color: '#64748b' }}>{d.admin_email || ''}</div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9' }}>{String(d.admin_name || 'Unknown')}</div>
+                          <div style={{ fontSize: 11, color: '#64748b' }}>{String(d.admin_email || '')}</div>
                         </td>
                         <td style={{ padding: '12px 16px' }}>
                           <ActionBadge action={log.action} />
