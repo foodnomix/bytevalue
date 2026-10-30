@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { loginRestaurant } from '../lib/auth'
 
 export default function LoginPage() {
-  const [identifier, setIdentifier] = useState('')
+  const [phone, setPhone] = useState('')
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -16,7 +16,7 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      const user = await loginRestaurant(identifier, pin)
+      const user = await loginRestaurant(phone, pin)
       setUser(user)
       navigate('/reports')
     } catch (err) {
@@ -52,46 +52,20 @@ export default function LoginPage() {
             Restaurant login
           </h1>
           <p style={{ fontSize: 13, color: '#94a3b8', margin: 0 }}>
-            Enter your registered phone number or email
+            Enter your registered phone number
           </p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
             <label style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>
-              Phone number or email
+              Phone number
             </label>
             <input
-              type="text"
-              value={identifier}
-              onChange={e => setIdentifier(e.target.value)}
-              placeholder="9876543210 or name@email.com"
-              required
-              style={{
-                width: '100%',
-                padding: '12px 14px',
-                fontSize: 15,
-                border: '1.5px solid #e2e8f0',
-                borderRadius: 12,
-                outline: 'none',
-                background: '#fafaf9',
-                transition: 'border-color 0.2s',
-                boxSizing: 'border-box',
-              }}
-              onFocus={e => e.target.style.borderColor = '#94a3b8'}
-              onBlur={e => e.target.style.borderColor = '#e2e8f0'}
-            />
-          </div>
-
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>
-              Security PIN
-            </label>
-            <input
-              type="password"
-              value={pin}
-              onChange={e => setPin(e.target.value)}
-              placeholder="Enter your PIN"
+              type="tel"
+              value={phone}
+              onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
+              placeholder="Enter your 10-digit phone number"
               required
               maxLength={10}
               style={{
@@ -104,7 +78,36 @@ export default function LoginPage() {
                 background: '#fafaf9',
                 transition: 'border-color 0.2s',
                 boxSizing: 'border-box',
-                letterSpacing: '0.15em',
+                letterSpacing: '0.05em',
+              }}
+              onFocus={e => e.target.style.borderColor = '#94a3b8'}
+              onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+            />
+          </div>
+
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: 6 }}>
+              Security PIN
+            </label>
+            <input
+              type="password"
+              inputMode="numeric"
+              value={pin}
+              onChange={e => setPin(e.target.value.replace(/\D/g, ''))}
+              placeholder="Enter your 6-digit PIN"
+              required
+              maxLength={6}
+              style={{
+                width: '100%',
+                padding: '12px 14px',
+                fontSize: 15,
+                border: '1.5px solid #e2e8f0',
+                borderRadius: 12,
+                outline: 'none',
+                background: '#fafaf9',
+                transition: 'border-color 0.2s',
+                boxSizing: 'border-box',
+                letterSpacing: '0.25em',
               }}
               onFocus={e => e.target.style.borderColor = '#94a3b8'}
               onBlur={e => e.target.style.borderColor = '#e2e8f0'}
@@ -112,14 +115,14 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <p style={{ fontSize: 13, color: '#dc2626', background: '#fef2f2', padding: '10px 14px', borderRadius: 10, margin: 0, fontWeight: 600 }}>
+            <p style={{ fontSize: 13, color: '#dc2626', background: '#fef2f2', padding: '10px 14px', borderRadius: 10, margin: 0, fontWeight: 600, lineHeight: 1.5 }}>
               {error}
             </p>
           )}
 
           <button
             type="submit"
-            disabled={loading || !identifier || !pin}
+            disabled={loading || !phone || !pin}
             style={{
               padding: '14px',
               fontSize: 15,

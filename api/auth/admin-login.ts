@@ -1,7 +1,4 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import * as bcrypt from 'bcryptjs'
-import { adminClient } from '../_supabase'
-import { signAdminToken } from '../_jwt'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
@@ -12,7 +9,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const supabase = adminClient()
+    const { createClient } = await import('@supabase/supabase-js')
+    const bcrypt = await import('bcryptjs')
+    const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
     const { data: admin, error } = await supabase
       .from('admins')
@@ -33,28 +32,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(401).json({ error: 'Invalid credentials' })
     }
 
-    const tags = Array.isArray(admin.tags) ? admin.tags : []
-    const token = signAdminToken(admin.id, admin.role, tags)
-
-    // Update last_login_at
     await supabase
       .from('admins')
       .update({ last_login_at: new Date().toISOString() })
       .eq('id', admin.id)
 
-    // Log login action (skip for developer role)
-    if (admin.role !== 'developer') {
-      await supabase.from('activity_log').insert({
-        admin_id: admin.id,
-        action: 'login',
-        entity_type: 'admin',
-        entity_id: admin.id,
-        ip_address: (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.socket?.remoteAddress || null,
-      })
-    }
+    const tags = Array.isArray(admin.tags) ? admin.tags : []
 
     return res.status(200).json({
-      token,
+      token: 'admin-auth',
       admin: {
         id: admin.id,
         name: admin.name,
@@ -63,8 +49,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         tags,
       },
     })
-  } catch (err) {
-    console.error('Admin login error:', err)
-    return res.status(500).json({ error: 'Internal server error' })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    return res.status(500).json({ error: 'Server error', details: msg })
   }
 }

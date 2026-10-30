@@ -6,6 +6,7 @@ export interface Restaurant {
   email: string
   phone: string
   phone2: string | null
+  pin_hash2: string | null
   city: string | null
   state: string | null
   platform_ids: Record<string, string>
