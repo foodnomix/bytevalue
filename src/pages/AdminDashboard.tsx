@@ -782,10 +782,13 @@ function ErrorMsg({ msg }: { msg: string }) {
 }
 
 function EditRestaurantModal({ restaurant, onClose, onSave }: { restaurant: Restaurant; onClose: () => void; onSave: (u: Partial<Restaurant>) => void }) {
+  const pids = (restaurant.platform_ids || {}) as Record<string, string>
   const [form, setForm] = useState({
     name: restaurant.name, email: restaurant.email, phone: restaurant.phone,
     phone2: restaurant.phone2 || '', city: restaurant.city || '',
     state: restaurant.state || '', status: restaurant.status,
+    swiggy_id: pids.swiggy || '', zomato_id: pids.zomato || '',
+    pin: '', pin2: '',
   })
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
 
@@ -798,10 +801,18 @@ function EditRestaurantModal({ restaurant, onClose, onSave }: { restaurant: Rest
           <div><label style={labelStyle}>Phone</label><input style={inputStyle} value={form.phone} onChange={e => set('phone', e.target.value)} /></div>
           <div><label style={labelStyle}>Phone 2</label><input style={inputStyle} value={form.phone2} onChange={e => set('phone2', e.target.value)} placeholder="Optional" /></div>
         </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div><label style={labelStyle}>PIN for Phone <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(leave blank to keep)</span></label><input type="password" inputMode="numeric" style={inputStyle} value={form.pin} onChange={e => set('pin', e.target.value.replace(/\D/g, ''))} placeholder="6-digit PIN" maxLength={6} /></div>
+          <div><label style={labelStyle}>PIN for Phone 2 <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(leave blank to keep)</span></label><input type="password" inputMode="numeric" style={inputStyle} value={form.pin2} onChange={e => set('pin2', e.target.value.replace(/\D/g, ''))} placeholder="6-digit PIN" maxLength={6} /></div>
+        </div>
         <div><label style={labelStyle}>Email</label><input style={inputStyle} value={form.email} onChange={e => set('email', e.target.value)} /></div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <div><label style={labelStyle}>City</label><input style={inputStyle} value={form.city} onChange={e => set('city', e.target.value)} /></div>
           <div><label style={labelStyle}>State</label><input style={inputStyle} value={form.state} onChange={e => set('state', e.target.value)} /></div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div><label style={labelStyle}>Swiggy ID</label><input style={inputStyle} value={form.swiggy_id} onChange={e => set('swiggy_id', e.target.value)} placeholder="e.g. 657649" /></div>
+          <div><label style={labelStyle}>Zomato ID</label><input style={inputStyle} value={form.zomato_id} onChange={e => set('zomato_id', e.target.value)} placeholder="e.g. 19119894" /></div>
         </div>
         <div><label style={labelStyle}>Status</label>
           <select style={{ ...inputStyle, cursor: 'pointer' }} value={form.status} onChange={e => set('status', e.target.value)}>
@@ -857,7 +868,7 @@ function EditUserModal({ user, onClose, onSave }: { user: AdminUser; onClose: ()
 }
 
 function AddRestaurantModal({ onClose, onSave, loading, error }: { onClose: () => void; onSave: (f: Record<string, string>) => void; loading: boolean; error: string }) {
-  const [form, setForm] = useState({ name: '', phone: '', phone2: '', email: '', city: '', state: '' })
+  const [form, setForm] = useState({ name: '', phone: '', phone2: '', email: '', city: '', state: '', swiggy_id: '', zomato_id: '', pin: '', pin2: '' })
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
 
   return (
@@ -869,10 +880,18 @@ function AddRestaurantModal({ onClose, onSave, loading, error }: { onClose: () =
           <div><label style={labelStyle}>Phone</label><input type="tel" style={inputStyle} value={form.phone} onChange={e => set('phone', e.target.value.replace(/\D/g, ''))} placeholder="10-digit number" maxLength={10} /></div>
           <div><label style={labelStyle}>Phone 2 <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label><input type="tel" style={inputStyle} value={form.phone2} onChange={e => set('phone2', e.target.value.replace(/\D/g, ''))} placeholder="Optional" maxLength={10} /></div>
         </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div><label style={labelStyle}>PIN for Phone</label><input type="password" inputMode="numeric" style={inputStyle} value={form.pin} onChange={e => set('pin', e.target.value.replace(/\D/g, ''))} placeholder="6-digit PIN" maxLength={6} /></div>
+          <div><label style={labelStyle}>PIN for Phone 2 <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label><input type="password" inputMode="numeric" style={inputStyle} value={form.pin2} onChange={e => set('pin2', e.target.value.replace(/\D/g, ''))} placeholder="6-digit PIN" maxLength={6} /></div>
+        </div>
         <div><label style={labelStyle}>Email <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label><input type="email" style={inputStyle} value={form.email} onChange={e => set('email', e.target.value)} placeholder="email@example.com" /></div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <div><label style={labelStyle}>City</label><input style={inputStyle} value={form.city} onChange={e => set('city', e.target.value)} placeholder="e.g. Omaha" /></div>
           <div><label style={labelStyle}>State</label><input style={inputStyle} value={form.state} onChange={e => set('state', e.target.value)} placeholder="e.g. NE" /></div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div><label style={labelStyle}>Swiggy ID <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label><input style={inputStyle} value={form.swiggy_id} onChange={e => set('swiggy_id', e.target.value)} placeholder="e.g. 657649" /></div>
+          <div><label style={labelStyle}>Zomato ID <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label><input style={inputStyle} value={form.zomato_id} onChange={e => set('zomato_id', e.target.value)} placeholder="e.g. 19119894" /></div>
         </div>
       </div>
       {error && <ErrorMsg msg={error} />}
