@@ -52,7 +52,10 @@ export async function loginRestaurant(phone: string, pin: string) {
     body: JSON.stringify({ phone, pin }),
   })
   const data = await res.json()
-  if (!res.ok) throw new Error(data.error || 'Login failed')
+  if (!res.ok) {
+    const msg = data.details ? `${data.error}: ${data.details}` : (data.error || 'Login failed')
+    throw new Error(msg)
+  }
 
   const user: RestaurantUser = {
     type: 'restaurant',
