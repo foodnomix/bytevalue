@@ -37,6 +37,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .update({ last_login_at: new Date().toISOString() })
       .eq('id', admin.id)
 
+    await supabase.from('activity_log').insert({
+      admin_id: admin.id,
+      action: 'login',
+      entity_type: 'admin',
+      entity_id: admin.id,
+      details: JSON.stringify({ admin_name: admin.name, admin_email: admin.email, role: admin.role }),
+    }).then(() => {})
+
     const tags = Array.isArray(admin.tags) ? admin.tags : []
 
     return res.status(200).json({
