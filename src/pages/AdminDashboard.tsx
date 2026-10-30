@@ -148,7 +148,7 @@ export default function AdminDashboard() {
       const params = new URLSearchParams({ id: restaurant.id, ...adminInfo } as Record<string, string>)
       const res = await fetch(`/api/admin/restaurant?${params}`, { method: 'DELETE' })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
+      if (!res.ok) throw new Error(data.details ? `${data.error}: ${data.details}` : data.error)
       setModal({ type: 'none' }); await fetchData()
     } catch (err) { setActionError((err as Error).message) }
     setActionLoading(false)
@@ -162,7 +162,7 @@ export default function AdminDashboard() {
         body: JSON.stringify({ id, ...updates, ...adminInfo }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
+      if (!res.ok) throw new Error(data.details ? `${data.error}: ${data.details}` : data.error)
       setModal({ type: 'none' }); await fetchData()
     } catch (err) { setActionError((err as Error).message) }
     setActionLoading(false)
@@ -216,7 +216,7 @@ export default function AdminDashboard() {
         body: JSON.stringify({ ...form, ...adminInfo }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
+      if (!res.ok) throw new Error(data.details ? `${data.error}: ${data.details}` : data.error)
       setModal({ type: 'none' }); await fetchData()
     } catch (err) { setActionError((err as Error).message) }
     setActionLoading(false)
