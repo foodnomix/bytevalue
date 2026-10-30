@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { LogOut, Search, Users, FileText, Activity } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import { supabase } from '../lib/supabase'
 import { MONTH_NAMES } from '../lib/format'
 import type { Restaurant, Report } from '../types'
 
@@ -24,21 +23,24 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function fetchData() {
       setLoading(true)
-      const [{ data: restData }, { data: reportData }] = await Promise.all([
-        supabase.from('restaurants').select('*').order('name'),
-        supabase.from('reports').select('*').order('created_at', { ascending: false }).limit(50),
-      ])
+      try {
+        const res = await fetch('/api/admin/data')
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error)
 
-      const rests = restData || []
-      const reps = reportData || []
+        const rests = data.restaurants || []
+        const reps = data.reports || []
 
-      setRestaurants(rests)
-      setReports(reps)
-      setStats({
-        totalRestaurants: rests.length,
-        activeRestaurants: rests.filter(r => r.status === 'active').length,
-        totalReports: reps.length,
-      })
+        setRestaurants(rests)
+        setReports(reps)
+        setStats({
+          totalRestaurants: rests.length,
+          activeRestaurants: rests.filter((r: Restaurant) => r.status === 'active').length,
+          totalReports: reps.length,
+        })
+      } catch (err) {
+        console.error('Failed to fetch admin data:', err)
+      }
       setLoading(false)
     }
     fetchData()
