@@ -1,15 +1,24 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { loginRestaurant } from '../lib/auth'
+import { loginRestaurant, clearAuth } from '../lib/auth'
 
 export default function LoginPage() {
   const [phone, setPhone] = useState('')
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { setUser } = useAuth()
+  const { user, setUser } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    if (user?.type === 'restaurant') {
+      navigate('/reports', { replace: true })
+    } else if (user) {
+      clearAuth()
+      setUser(null)
+    }
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

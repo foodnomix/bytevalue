@@ -22,7 +22,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const { data: restaurants, error: dbErr } = await supabase
       .from('restaurants')
-      .select('id, name, email, phone, phone2, pin_hash, pin_hash2, status')
+      .select('id, name, email, phone, phone2, pin_hash, status')
       .or(`phone.eq.${trimmed},phone2.eq.${trimmed}`)
 
     if (dbErr) {
@@ -39,7 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const isPhone2 = restaurant.phone2 === trimmed && restaurant.phone !== trimmed
-    const pinHash = isPhone2 ? restaurant.pin_hash2 : restaurant.pin_hash
+    const pinHash = restaurant.pin_hash
 
     if (!pinHash) {
       return res.status(401).json({ error: 'PIN not set for this phone number. Contact support.' })
