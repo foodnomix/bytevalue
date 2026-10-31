@@ -11,26 +11,79 @@ interface Props {
   platform: Platform
 }
 
-const CARD_DEFS = [
-  { key: 'net_sales', label: 'Net Order Value', color: '#10b981', icon: '↑', subtitle: 'Amount you retain before fees, taxes & ads' },
-  { key: 'platform_fee',  label: 'Platform Fee',    color: '#f43f5e', icon: '↓', subtitle: 'Base commission + payment gateway charges' },
-  { key: 'govt_tax',      label: 'Govt. Taxes',     color: '#f59e0b', icon: '↓', subtitle: '18% GST applied on platform fee' },
-  { key: 'ads_spend',     label: 'Ads & Promo',     color: '#8b5cf6', icon: '↓', subtitle: 'Spend on visibility' },
-  { key: 'complaints',    label: 'Complaints',      color: '#ef4444', icon: '↓', subtitle: 'Deductions from customer complaints' },
-] as const
+const n = (v: number | null | undefined) => v ?? 0
 
-export default function PayoutBreakdown({ periods, accentColor }: Props) {
+function SectionLabel({ text, color }: { text: string; color: string }) {
+  return (
+    <div style={{
+      padding: '10px 16px 8px',
+      display: 'flex', alignItems: 'center', gap: 8,
+    }}>
+      <div style={{ width: 3, height: 14, borderRadius: 2, background: color, flexShrink: 0 }} />
+      <p style={{ fontSize: 10, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.14em', margin: 0 }}>{text}</p>
+    </div>
+  )
+}
+
+function LedgerRow({ label, value, sign, highlight, last, sub }: {
+  label: string
+  value: number
+  sign?: '+' | '-' | null
+  highlight?: boolean
+  last?: boolean
+  sub?: string
+}) {
+  const signColor = sign === '-' ? '#dc2626' : sign === '+' ? '#059669' : '#1e293b'
+  const bgColor = sign === '-' ? '#fff1f2' : sign === '+' ? '#f0fdf4' : '#f8fafc'
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '10px 16px',
+      borderBottom: last ? 'none' : '1px solid #f8fafc',
+      background: highlight ? '#fefce8' : 'transparent',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
+        <div style={{
+          width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+          background: bgColor, color: signColor,
+          fontSize: 12, fontWeight: 900,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          {sign ?? '='}
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>{label}</span>
+          {sub && <p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8', margin: '2px 0 0', lineHeight: 1.4 }}>{sub}</p>}
+        </div>
+      </div>
+      <span style={{
+        fontSize: 13, fontWeight: 800, color: signColor,
+        letterSpacing: '-0.01em', flexShrink: 0, marginLeft: 8,
+      }}>
+        {sign === '-' && '- '}<AnimatedNumber value={Math.abs(value)} format={INR} />
+      </span>
+    </div>
+  )
+}
+
+function PctBadge({ value, label }: { value: number; label: string }) {
+  return (
+    <div style={{
+      display: 'inline-flex', alignItems: 'center', gap: 4,
+      background: '#f0fdf4', border: '1px solid #bbf7d0',
+      borderRadius: 7, padding: '3px 9px',
+    }}>
+      <span style={{ fontSize: 10, fontWeight: 700, color: '#059669' }}>{value}%</span>
+      <span style={{ fontSize: 9, fontWeight: 500, color: '#64748b' }}>{label}</span>
+    </div>
+  )
+}
+
+export default function PayoutBreakdown({ periods, accentColor, platform }: Props) {
   const overall = periods.find(p => p.sort_order === 0)
   if (!overall) return null
 
-  const values: Record<string, { value: number; pct: number | null }> = {
-    net_sales:     { value: overall.net_sales ?? overall.customer_paid, pct: null },
-    platform_fee:  { value: overall.platform_fee,  pct: overall.platform_fee_pct },
-    govt_tax:      { value: overall.govt_tax,       pct: overall.govt_tax_pct },
-    ads_spend:     { value: overall.ads_spend,      pct: overall.ads_spend_pct },
-    complaints:    { value: overall.complaints ?? 0, pct: null },
-  }
-
+  const z = platform === 'zomato'
   const retainedPct = overall.retained_pct ?? overall.net_payout_pct
 
   const donutSegments = [
@@ -40,70 +93,209 @@ export default function PayoutBreakdown({ periods, accentColor }: Props) {
     { value: overall.ads_spend_pct,    color: 'rgba(255,255,255,0.06)' },
   ]
 
+  const hasFeeBreakdown = n(overall.base_fee) > 0 || n(overall.payment_fee) > 0
+  const hasPlatformGst = n(overall.platform_gst) > 0
+  const hasTds = n(overall.tds) > 0
+  const hasOtherDeductions = n(overall.other_deductions) > 0
+  const hasRefunds = n(overall.refunds) > 0
+  const hasComplaints = n(overall.complaints) > 0
+  const hasPlatformTake = n(overall.platform_take) > 0
+
   return (
     <section>
       <SectionHeading
         title="Payout Breakdown"
         accentColor={accentColor}
-        tooltip="Breaks down where your order revenue goes. Net Order Value is your starting amount; Platform Fee, Govt. Taxes, Ads & Promo, and Complaints are deducted from it to arrive at your Final Net Payout."
+        tooltip="A step-by-step view of your money: what customers paid, what was deducted, and what reached your bank account."
       />
 
-      {/* Deduction cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(155px, 1fr))', gap: 10, marginBottom: 10 }}>
-        {CARD_DEFS.map((def, i) => {
-          const { value, pct } = values[def.key]
-          if (def.key === 'complaints' && value === 0) return null
-          return (
-            <motion.div
-              key={def.key}
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.38, delay: i * 0.07, ease: [0.34, 1.1, 0.64, 1] }}
-              style={{
-                background: `linear-gradient(140deg, ${accentColor}12 0%, ${accentColor}05 55%, #ffffff 100%)`,
-                borderRadius: 18,
-                border: `1px solid ${accentColor}28`,
-                boxShadow: `0 2px 14px ${accentColor}0d, 0 1px 3px rgba(0,0,0,0.04)`,
-                padding: '16px 18px 18px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
-                <p style={{ fontSize: 10, fontWeight: 800, color: def.color, textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0, lineHeight: 1.3 }}>{def.label}</p>
-                <div style={{
-                  width: 34, height: 34, borderRadius: 10,
-                  background: `${def.color}18`,
-                  border: `1.5px solid ${def.color}30`,
-                  color: def.color,
-                  fontSize: 15, fontWeight: 900,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0,
-                  boxShadow: `0 2px 8px ${def.color}20`,
-                }}>{def.icon}</div>
-              </div>
+      {/* Money Statement */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.4, ease: [0.34, 1.1, 0.64, 1] }}
+        style={{
+          background: '#fff',
+          borderRadius: 18,
+          border: '1px solid #ede9e4',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+          overflow: 'hidden',
+          marginBottom: 10,
+        }}
+      >
+        {/* Header */}
+        <div style={{
+          padding: '14px 16px 12px',
+          borderBottom: '1px solid #f1f5f9',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <p style={{ fontSize: 10, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.15em', margin: 0 }}>
+            Payout Statement
+          </p>
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8' }}>{overall.period_label}</span>
+        </div>
 
-              <div style={{ fontSize: 'clamp(0.9rem, 3vw, 1.55rem)', fontWeight: 900, color: '#0f172a', lineHeight: 1.15, overflowWrap: 'break-word' }}>
-                <AnimatedNumber value={value} format={INR} />
-              </div>
+        {/* Section 1: Your Revenue */}
+        <SectionLabel text="Your Revenue" color="#10b981" />
+        <LedgerRow
+          label="Net Order Value"
+          value={overall.net_sales ?? overall.customer_paid}
+          sub="What customers paid for your food"
+        />
 
-              {pct !== null && (
-                <p style={{ fontSize: 10, fontWeight: 700, color: `${def.color}bb`, marginTop: 6 }}>{pct}% of revenue</p>
+        {/* Section 2: Platform Charges */}
+        <SectionLabel text={z ? 'Zomato Charges' : 'Swiggy Charges'} color="#f43f5e" />
+
+        {hasFeeBreakdown && (
+          <>
+            <LedgerRow
+              label={z ? 'Base Commission' : 'Commission'}
+              value={n(overall.base_fee)}
+              sign="-"
+              sub={[
+                overall.base_fee_pct ? `${overall.base_fee_pct}% commission rate` : '',
+                n(overall.commissionable_value) > 0 ? `on ${INR(n(overall.commissionable_value))} commissionable value` : '',
+              ].filter(Boolean).join(' · ') || undefined}
+            />
+            <LedgerRow
+              label="Payment Fee"
+              value={n(overall.payment_fee)}
+              sign="-"
+              sub={overall.payment_fee_pct ? `${overall.payment_fee_pct}% of customer payment` : undefined}
+            />
+          </>
+        )}
+
+        <LedgerRow
+          label={z ? 'Service Fee (Total)' : 'Swiggy Fees (Total)'}
+          value={overall.platform_fee}
+          sign="-"
+          highlight={hasFeeBreakdown}
+          sub={`${overall.platform_fee_pct}% of revenue${hasFeeBreakdown ? '' : z ? ' -- commission + payment fees' : ' -- commission and payment collection'}`}
+        />
+
+        {hasPlatformGst && (
+          <LedgerRow
+            label={z ? 'GST on Zomato Fees' : 'GST on Swiggy Fees'}
+            value={n(overall.platform_gst)}
+            sign="-"
+            sub="18% GST on the service fee"
+          />
+        )}
+
+        <LedgerRow
+          label="Ads & Promotions"
+          value={overall.ads_spend}
+          sign="-"
+          sub={`${overall.ads_spend_pct}% of revenue`}
+        />
+
+        {hasPlatformTake && (
+          <div style={{
+            margin: '4px 12px 8px',
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: 10,
+            padding: '10px 14px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <div>
+              <p style={{ fontSize: 10, fontWeight: 800, color: '#dc2626', margin: 0 }}>
+                Total {z ? 'Zomato' : 'Swiggy'} Take
+              </p>
+              {overall.platform_take_pct != null && (
+                <p style={{ fontSize: 9, fontWeight: 600, color: '#ef4444', margin: '2px 0 0' }}>
+                  {overall.platform_take_pct}% of your net sales
+                </p>
               )}
+            </div>
+            <span style={{ fontSize: 15, fontWeight: 900, color: '#dc2626' }}>
+              <AnimatedNumber value={n(overall.platform_take)} format={INR} />
+            </span>
+          </div>
+        )}
 
-              {def.subtitle && (
-                <p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8', marginTop: 6, lineHeight: 1.5 }}>{def.subtitle}</p>
-              )}
-            </motion.div>
-          )
-        })}
-      </div>
+        {/* Section 3: Taxes */}
+        <SectionLabel text="Government Taxes" color="#f59e0b" />
+
+        <LedgerRow
+          label="Govt Taxes"
+          value={overall.govt_tax}
+          sign="-"
+          sub={`${overall.govt_tax_pct}% of revenue`}
+        />
+
+        {hasTds && (
+          <LedgerRow
+            label="TDS (Income Tax)"
+            value={n(overall.tds)}
+            sign="-"
+            sub="Claim it back when you file ITR"
+            last
+          />
+        )}
+
+        {/* Section 4: Adjustments (only if any exist) */}
+        {(hasComplaints || hasOtherDeductions || hasRefunds) && (
+          <>
+            <SectionLabel text="Adjustments" color="#8b5cf6" />
+
+            {hasComplaints && (
+              <LedgerRow
+                label={z ? 'Customer Complaints' : 'Complaints & Cancellations'}
+                value={n(overall.complaints)}
+                sign="-"
+                sub={z ? 'Missing/wrong items deducted from payout' : 'Complaint and cancellation deductions'}
+              />
+            )}
+
+            {hasOtherDeductions && (
+              <LedgerRow
+                label="Other Deductions"
+                value={n(overall.other_deductions)}
+                sign="-"
+              />
+            )}
+
+            {hasRefunds && (
+              <LedgerRow
+                label={z ? 'Cancellation Credits' : 'Refunds'}
+                value={n(overall.refunds)}
+                sign="+"
+                sub={z ? 'Paid to you for orders cancelled after acceptance' : 'Credits added back to your payout'}
+                last
+              />
+            )}
+          </>
+        )}
+
+        {/* Divider before payout */}
+        <div style={{ height: 1, background: '#e2e8f0', margin: '4px 16px' }} />
+
+        {/* Section 5: Payout summary badges */}
+        <div style={{ padding: '10px 16px 14px', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          <PctBadge value={retainedPct} label="of net sales retained" />
+          {overall.net_payout_pct != null && (
+            <PctBadge value={overall.net_payout_pct} label="of customer payment retained" />
+          )}
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            background: '#f1f5f9', borderRadius: 7, padding: '3px 9px',
+          }}>
+            <span style={{ fontSize: 9, fontWeight: 600, color: '#94a3b8' }}>
+              {periods.length - 1} settlement period{periods.length - 1 !== 1 ? 's' : ''}
+            </span>
+          </div>
+        </div>
+      </motion.div>
 
       {/* Final Net Payout */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.45, delay: 0.28 }}
+        transition={{ duration: 0.45, delay: 0.15 }}
         style={{
           background: 'linear-gradient(135deg, #0d1829 0%, #1a2640 100%)',
           borderRadius: 20,
@@ -133,24 +325,20 @@ export default function PayoutBreakdown({ periods, accentColor }: Props) {
 
         <div style={{ minWidth: 0, flex: 1 }}>
           <p style={{ fontSize: 9, fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.18em', marginBottom: 10 }}>
-            Final Net Payout
+            Your Bank Payout
           </p>
           <div style={{ fontSize: 'clamp(1.7rem, 5vw, 2.8rem)', fontWeight: 900, color: '#fff', lineHeight: 1.1, overflowWrap: 'break-word' }}>
             <AnimatedNumber value={overall.net_payout} format={INR} duration={1100} />
           </div>
           <p style={{ fontSize: 10, fontWeight: 500, color: '#475569', marginTop: 6, lineHeight: 1.5 }}>
-            What actually lands in your account after all deductions
+            {z
+              ? 'Credited to your bank account by Zomato for the month.'
+              : 'Credited to your bank account by Swiggy for this period.'}
           </p>
 
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 10, background: 'rgba(16,185,129,0.14)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 8, padding: '4px 10px' }}>
             <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#10b981' }} />
             <span style={{ fontSize: 11, fontWeight: 700, color: '#6ee7b7' }}>{retainedPct}% of revenue retained</span>
-          </div>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
-            <span style={{ fontSize: 10, fontWeight: 700, background: 'rgba(255,255,255,0.07)', color: '#64748b', borderRadius: 7, padding: '3px 9px' }}>
-              {periods.length - 1} Settlement Periods
-            </span>
           </div>
         </div>
 

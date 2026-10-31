@@ -4,11 +4,12 @@ import StatCard from '../ui/StatCard'
 import SectionHeading from '../ui/SectionHeading'
 import AnimatedNumber from '../ui/AnimatedNumber'
 import { INR } from '../../lib/format'
-import type { PerformancePeriod } from '../../types'
+import type { PerformancePeriod, Platform } from '../../types'
 
 interface Props {
   periods: PerformancePeriod[]
   accentColor: string
+  platform: Platform
 }
 
 const TAB_STYLE = (active: boolean, color: string) => ({
@@ -25,7 +26,7 @@ const TAB_STYLE = (active: boolean, color: string) => ({
   boxShadow: active ? `0 4px 14px ${color}44` : 'none',
 })
 
-export default function PerformanceOverview({ periods, accentColor }: Props) {
+export default function PerformanceOverview({ periods, accentColor, platform }: Props) {
   const [activeIdx, setActiveIdx] = useState(0)
   const p = periods[activeIdx]
   if (!p) return null
@@ -71,7 +72,7 @@ export default function PerformanceOverview({ periods, accentColor }: Props) {
                     <span style={{ fontSize: 10, fontWeight: 700, background: '#dbeafe', color: '#1d4ed8', borderRadius: 7, padding: '3px 8px' }}>{p.delivered} Delivered</span>
                     {p.cancelled > 0 && <span style={{ fontSize: 10, fontWeight: 700, background: '#fee2e2', color: '#dc2626', borderRadius: 7, padding: '3px 8px' }}>{p.cancelled} Cancelled</span>}
                   </div>
-                  <p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>All orders placed this period, delivered + cancelled</p>
+                  <p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>{platform === 'zomato' ? 'Every order placed with you on Zomato this month, delivered or cancelled.' : 'Every order placed with you on Swiggy in this period, delivered or cancelled.'}</p>
                 </div>
               }
             />
@@ -80,7 +81,7 @@ export default function PerformanceOverview({ periods, accentColor }: Props) {
               accentColor={accentColor}
               value={<AnimatedNumber value={p.gross_subtotal} format={INR} />}
               delay={0.05}
-              sub={<p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>Item value before any discounts</p>}
+              sub={<p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>The menu value of everything you delivered, before any discounts.</p>}
             />
             <StatCard
               label="Total Discounts"
@@ -91,7 +92,7 @@ export default function PerformanceOverview({ periods, accentColor }: Props) {
               sub={
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', margin: 0 }}>{((p.discounts / p.gross_subtotal) * 100).toFixed(1)}% of subtotal</p>
-                  <p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>Total customer discounts as % of gross subtotal</p>
+                  <p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>{platform === 'zomato' ? 'Discounts you funded: promo codes, BOGO, freebie and Gold offers, and relisting discounts.' : 'Your share of the discounts and offers given to customers.'}</p>
                 </div>
               }
             />
@@ -102,7 +103,7 @@ export default function PerformanceOverview({ periods, accentColor }: Props) {
               stripColor="#10b981"
               value={<AnimatedNumber value={p.aov} format={v => INR(Math.round(v))} />}
               delay={0.15}
-              sub={<p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>Net order value divided by total orders</p>}
+              sub={<p style={{ fontSize: 9, fontWeight: 500, color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>What a customer paid you on an average delivered order, including GST.</p>}
             />
           </div>
 

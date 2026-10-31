@@ -50,6 +50,17 @@ export interface PayoutPeriod {
   net_payout_pct: number
   retained_pct: number
   complaints: number
+  commissionable_value?: number | null
+  base_fee?: number | null
+  base_fee_pct?: number | null
+  payment_fee?: number | null
+  payment_fee_pct?: number | null
+  platform_gst?: number | null
+  tds?: number | null
+  platform_take?: number | null
+  platform_take_pct?: number | null
+  other_deductions?: number | null
+  refunds?: number | null
 }
 
 export interface PerformancePeriod {

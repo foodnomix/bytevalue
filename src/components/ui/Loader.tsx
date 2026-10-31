@@ -1,6 +1,62 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 
+function playFuturisticSound() {
+  try {
+    const ctx = new AudioContext()
+
+    const osc1 = ctx.createOscillator()
+    const gain1 = ctx.createGain()
+    osc1.type = 'sine'
+    osc1.frequency.setValueAtTime(180, ctx.currentTime)
+    osc1.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 1.8)
+    gain1.gain.setValueAtTime(0, ctx.currentTime)
+    gain1.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.3)
+    gain1.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 1.5)
+    gain1.gain.linearRampToValueAtTime(0, ctx.currentTime + 2.5)
+    osc1.connect(gain1).connect(ctx.destination)
+
+    const osc2 = ctx.createOscillator()
+    const gain2 = ctx.createGain()
+    osc2.type = 'triangle'
+    osc2.frequency.setValueAtTime(400, ctx.currentTime)
+    osc2.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 2)
+    gain2.gain.setValueAtTime(0, ctx.currentTime)
+    gain2.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 0.5)
+    gain2.gain.linearRampToValueAtTime(0.03, ctx.currentTime + 1.8)
+    gain2.gain.linearRampToValueAtTime(0, ctx.currentTime + 2.8)
+    osc2.connect(gain2).connect(ctx.destination)
+
+    const shimmer = ctx.createOscillator()
+    const shimmerGain = ctx.createGain()
+    shimmer.type = 'sine'
+    shimmer.frequency.setValueAtTime(2400, ctx.currentTime + 0.5)
+    shimmer.frequency.exponentialRampToValueAtTime(3600, ctx.currentTime + 2.2)
+    shimmerGain.gain.setValueAtTime(0, ctx.currentTime)
+    shimmerGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4)
+    shimmerGain.gain.linearRampToValueAtTime(0.02, ctx.currentTime + 0.8)
+    shimmerGain.gain.linearRampToValueAtTime(0.015, ctx.currentTime + 2)
+    shimmerGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 2.8)
+    shimmer.connect(shimmerGain).connect(ctx.destination)
+
+    const sub = ctx.createOscillator()
+    const subGain = ctx.createGain()
+    sub.type = 'sine'
+    sub.frequency.setValueAtTime(60, ctx.currentTime)
+    sub.frequency.linearRampToValueAtTime(90, ctx.currentTime + 2)
+    subGain.gain.setValueAtTime(0, ctx.currentTime)
+    subGain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.2)
+    subGain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 1.5)
+    subGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 2.8)
+    sub.connect(subGain).connect(ctx.destination)
+
+    ;[osc1, osc2, shimmer, sub].forEach(o => { o.start(); o.stop(ctx.currentTime + 3) })
+    setTimeout(() => ctx.close(), 3500)
+  } catch {
+    // Web Audio not available
+  }
+}
+
 export default function Loader({ onDone }: { onDone: () => void }) {
   const [progress, setProgress] = useState(0)
   const [label, setLabel] = useState('Fetching report data')
@@ -13,6 +69,8 @@ export default function Loader({ onDone }: { onDone: () => void }) {
   ]
 
   useEffect(() => {
+    playFuturisticSound()
+
     const duration = 3000
     const start = Date.now()
 
