@@ -1,59 +1,93 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 
-function playSignatureSound() {
+function createSignatureSound() {
   try {
     const ctx = new AudioContext()
+
+    // Phase 1: Quiet rising hum that builds tension during loading
+    // Starts immediately, crescendos over ~2.5s
     const t = ctx.currentTime
 
-    // Layer 1: Deep thud (sub-bass hit)
-    const thud = ctx.createOscillator()
-    const thudGain = ctx.createGain()
-    thud.type = 'sine'
-    thud.frequency.setValueAtTime(85, t)
-    thud.frequency.exponentialRampToValueAtTime(45, t + 0.4)
-    thudGain.gain.setValueAtTime(0, t)
-    thudGain.gain.linearRampToValueAtTime(0.18, t + 0.03)
-    thudGain.gain.exponentialRampToValueAtTime(0.01, t + 0.6)
-    thud.connect(thudGain).connect(ctx.destination)
+    const hum = ctx.createOscillator()
+    const humGain = ctx.createGain()
+    hum.type = 'sine'
+    hum.frequency.setValueAtTime(110, t)
+    hum.frequency.linearRampToValueAtTime(165, t + 2.5)
+    humGain.gain.setValueAtTime(0, t)
+    humGain.gain.linearRampToValueAtTime(0.03, t + 0.8)
+    humGain.gain.linearRampToValueAtTime(0.06, t + 2.2)
+    humGain.gain.linearRampToValueAtTime(0.08, t + 2.5)
+    humGain.gain.linearRampToValueAtTime(0, t + 2.65)
+    hum.connect(humGain).connect(ctx.destination)
+    hum.start()
+    hum.stop(t + 2.7)
 
-    // Layer 2: Warm resonance (blooms after the thud)
-    const tone = ctx.createOscillator()
-    const toneGain = ctx.createGain()
-    tone.type = 'triangle'
-    tone.frequency.setValueAtTime(220, t + 0.08)
-    toneGain.gain.setValueAtTime(0, t)
-    toneGain.gain.linearRampToValueAtTime(0, t + 0.06)
-    toneGain.gain.linearRampToValueAtTime(0.09, t + 0.15)
-    toneGain.gain.exponentialRampToValueAtTime(0.01, t + 1.0)
-    tone.connect(toneGain).connect(ctx.destination)
+    const shimmerBuild = ctx.createOscillator()
+    const shimmerBuildGain = ctx.createGain()
+    shimmerBuild.type = 'triangle'
+    shimmerBuild.frequency.setValueAtTime(440, t + 1.0)
+    shimmerBuild.frequency.linearRampToValueAtTime(660, t + 2.5)
+    shimmerBuildGain.gain.setValueAtTime(0, t)
+    shimmerBuildGain.gain.linearRampToValueAtTime(0, t + 1.0)
+    shimmerBuildGain.gain.linearRampToValueAtTime(0.015, t + 1.8)
+    shimmerBuildGain.gain.linearRampToValueAtTime(0.035, t + 2.4)
+    shimmerBuildGain.gain.linearRampToValueAtTime(0, t + 2.6)
+    shimmerBuild.connect(shimmerBuildGain).connect(ctx.destination)
+    shimmerBuild.start()
+    shimmerBuild.stop(t + 2.7)
 
-    // Layer 3: Bright confirmation note (the "ding")
-    const ding = ctx.createOscillator()
-    const dingGain = ctx.createGain()
-    ding.type = 'sine'
-    ding.frequency.setValueAtTime(660, t + 0.2)
-    dingGain.gain.setValueAtTime(0, t)
-    dingGain.gain.linearRampToValueAtTime(0, t + 0.18)
-    dingGain.gain.linearRampToValueAtTime(0.06, t + 0.25)
-    dingGain.gain.exponentialRampToValueAtTime(0.01, t + 1.2)
-    ding.connect(dingGain).connect(ctx.destination)
+    return {
+      playThud() {
+        const now = ctx.currentTime
 
-    // Layer 4: Subtle harmonic shimmer
-    const shimmer = ctx.createOscillator()
-    const shimmerGain = ctx.createGain()
-    shimmer.type = 'sine'
-    shimmer.frequency.setValueAtTime(1320, t + 0.22)
-    shimmerGain.gain.setValueAtTime(0, t)
-    shimmerGain.gain.linearRampToValueAtTime(0, t + 0.2)
-    shimmerGain.gain.linearRampToValueAtTime(0.015, t + 0.28)
-    shimmerGain.gain.exponentialRampToValueAtTime(0.001, t + 1.0)
-    shimmer.connect(shimmerGain).connect(ctx.destination)
+        // Deep thud
+        const thud = ctx.createOscillator()
+        const thudGain = ctx.createGain()
+        thud.type = 'sine'
+        thud.frequency.setValueAtTime(90, now)
+        thud.frequency.exponentialRampToValueAtTime(40, now + 0.5)
+        thudGain.gain.setValueAtTime(0, now)
+        thudGain.gain.linearRampToValueAtTime(0.22, now + 0.025)
+        thudGain.gain.exponentialRampToValueAtTime(0.01, now + 0.7)
+        thud.connect(thudGain).connect(ctx.destination)
 
-    ;[thud, tone, ding, shimmer].forEach(o => { o.start(); o.stop(t + 1.5) })
-    setTimeout(() => ctx.close(), 2000)
+        // Warm confirmation tone
+        const tone = ctx.createOscillator()
+        const toneGain = ctx.createGain()
+        tone.type = 'triangle'
+        tone.frequency.setValueAtTime(220, now)
+        toneGain.gain.setValueAtTime(0, now)
+        toneGain.gain.linearRampToValueAtTime(0.1, now + 0.08)
+        toneGain.gain.exponentialRampToValueAtTime(0.01, now + 0.9)
+        tone.connect(toneGain).connect(ctx.destination)
+
+        // Bright ding
+        const ding = ctx.createOscillator()
+        const dingGain = ctx.createGain()
+        ding.type = 'sine'
+        ding.frequency.setValueAtTime(660, now)
+        dingGain.gain.setValueAtTime(0, now)
+        dingGain.gain.linearRampToValueAtTime(0.06, now + 0.06)
+        dingGain.gain.exponentialRampToValueAtTime(0.01, now + 1.0)
+        ding.connect(dingGain).connect(ctx.destination)
+
+        // High shimmer
+        const shimmer = ctx.createOscillator()
+        const shimmerGain = ctx.createGain()
+        shimmer.type = 'sine'
+        shimmer.frequency.setValueAtTime(1320, now)
+        shimmerGain.gain.setValueAtTime(0, now)
+        shimmerGain.gain.linearRampToValueAtTime(0.018, now + 0.1)
+        shimmerGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8)
+        shimmer.connect(shimmerGain).connect(ctx.destination)
+
+        ;[thud, tone, ding, shimmer].forEach(o => { o.start(); o.stop(now + 1.2) })
+        setTimeout(() => ctx.close(), 2000)
+      },
+    }
   } catch {
-    // Web Audio not available
+    return null
   }
 }
 
@@ -69,7 +103,8 @@ export default function Loader({ onDone }: { onDone: () => void }) {
   ]
 
   useEffect(() => {
-    playSignatureSound()
+    const sound = createSignatureSound()
+    const thudTimer = setTimeout(() => sound?.playThud(), 2500)
 
     const duration = 3000
     const start = Date.now()
@@ -86,7 +121,7 @@ export default function Loader({ onDone }: { onDone: () => void }) {
       }
     }, 20)
 
-    return () => clearInterval(tick)
+    return () => { clearInterval(tick); clearTimeout(thudTimer) }
   }, [])
 
   return (
