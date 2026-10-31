@@ -5,6 +5,7 @@ import { X } from 'lucide-react'
 interface HelpItem {
   label: string
   text: string
+  value?: string
 }
 
 interface Props {
@@ -13,9 +14,10 @@ interface Props {
   description: string
   accentColor: string
   helpItems?: HelpItem[]
+  mainValue?: string
 }
 
-export default function CardExpander({ children, title, description, accentColor, helpItems }: Props) {
+export default function CardExpander({ children, title, description, accentColor, helpItems, mainValue }: Props) {
   const [open, setOpen] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
   const [origin, setOrigin] = useState({ x: 0, y: 0 })
@@ -162,6 +164,14 @@ export default function CardExpander({ children, title, description, accentColor
                         fontSize: 17, fontWeight: 900, color: '#0f172a',
                         margin: '0 0 6px',
                       }}>{title}</h3>
+
+                      {mainValue && (
+                        <p style={{
+                          fontSize: 28, fontWeight: 900, color: accentColor,
+                          margin: '0 0 8px', letterSpacing: '-0.02em', lineHeight: 1.1,
+                        }}>{mainValue}</p>
+                      )}
+
                       <p style={{
                         fontSize: 12.5, fontWeight: 500, color: '#64748b',
                         margin: 0, lineHeight: 1.65,
@@ -192,13 +202,21 @@ export default function CardExpander({ children, title, description, accentColor
                         padding: '12px 0',
                         borderBottom: i < helpItems.length - 1 ? '1px solid #f1f5f9' : 'none',
                       }}>
-                        <p style={{
-                          fontSize: 11, fontWeight: 800, color: accentColor,
-                          margin: '0 0 4px', letterSpacing: '0.04em',
-                        }}>{item.label}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                          <p style={{
+                            fontSize: 11, fontWeight: 800, color: accentColor,
+                            margin: 0, letterSpacing: '0.04em',
+                          }}>{item.label}</p>
+                          {item.value && (
+                            <span style={{
+                              fontSize: 14, fontWeight: 900, color: '#0f172a',
+                              flexShrink: 0,
+                            }}>{item.value}</span>
+                          )}
+                        </div>
                         <p style={{
                           fontSize: 12, fontWeight: 500, color: '#475569',
-                          margin: 0, lineHeight: 1.65,
+                          margin: '4px 0 0', lineHeight: 1.65,
                         }}>{item.text}</p>
                       </div>
                     ))}

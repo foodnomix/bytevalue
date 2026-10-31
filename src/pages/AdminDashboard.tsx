@@ -238,18 +238,18 @@ export default function AdminDashboard() {
     restaurant_id: string
     month: number
     year: number
-    period_type: string
+    report_no: number
     platforms: { platform: string; status: string; created_at?: string }[]
   }
 
   const groupedReports: GroupedReport[] = (() => {
     const map = new Map<string, GroupedReport>()
     for (const r of reports) {
-      const key = `${r.restaurant_id}-${r.year}-${r.month}-${r.period_type}`
+      const key = `${r.restaurant_id}-${r.report_no}`
       if (!map.has(key)) {
         map.set(key, {
           key, restaurant_id: r.restaurant_id,
-          month: r.month, year: r.year, period_type: r.period_type,
+          month: r.month, year: r.year, report_no: r.report_no,
           platforms: [],
         })
       }
@@ -422,7 +422,7 @@ export default function AdminDashboard() {
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                    {['Restaurant', 'Platforms', 'Month', 'Period', 'Status', 'Uploaded'].map(h => (
+                    {['Restaurant', 'Platforms', 'Month', 'Report', 'Status', 'Uploaded'].map(h => (
                       <th key={h} style={{ padding: '12px 16px', fontSize: 10, fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'left' }}>{h}</th>
                     ))}
                   </tr>
@@ -454,7 +454,7 @@ export default function AdminDashboard() {
                           </div>
                         </td>
                         <td style={{ padding: '12px 16px', fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>{MONTH_NAMES[g.month]} {g.year}</td>
-                        <td style={{ padding: '12px 16px', fontSize: 12, color: '#64748b' }}>{g.period_type}</td>
+                        <td style={{ padding: '12px 16px', fontSize: 12, fontWeight: 700, color: '#94a3b8' }}>Report {String(g.report_no).padStart(2, '0')}</td>
                         <td style={{ padding: '12px 16px' }}>
                           <span style={{
                             fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 6,

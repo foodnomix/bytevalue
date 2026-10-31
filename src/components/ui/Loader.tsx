@@ -1,57 +1,57 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 
-function playFuturisticSound() {
+function playSignatureSound() {
   try {
     const ctx = new AudioContext()
+    const t = ctx.currentTime
 
-    const osc1 = ctx.createOscillator()
-    const gain1 = ctx.createGain()
-    osc1.type = 'sine'
-    osc1.frequency.setValueAtTime(180, ctx.currentTime)
-    osc1.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 1.8)
-    gain1.gain.setValueAtTime(0, ctx.currentTime)
-    gain1.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.3)
-    gain1.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 1.5)
-    gain1.gain.linearRampToValueAtTime(0, ctx.currentTime + 2.5)
-    osc1.connect(gain1).connect(ctx.destination)
+    // Layer 1: Deep thud (sub-bass hit)
+    const thud = ctx.createOscillator()
+    const thudGain = ctx.createGain()
+    thud.type = 'sine'
+    thud.frequency.setValueAtTime(85, t)
+    thud.frequency.exponentialRampToValueAtTime(45, t + 0.4)
+    thudGain.gain.setValueAtTime(0, t)
+    thudGain.gain.linearRampToValueAtTime(0.18, t + 0.03)
+    thudGain.gain.exponentialRampToValueAtTime(0.01, t + 0.6)
+    thud.connect(thudGain).connect(ctx.destination)
 
-    const osc2 = ctx.createOscillator()
-    const gain2 = ctx.createGain()
-    osc2.type = 'triangle'
-    osc2.frequency.setValueAtTime(400, ctx.currentTime)
-    osc2.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 2)
-    gain2.gain.setValueAtTime(0, ctx.currentTime)
-    gain2.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 0.5)
-    gain2.gain.linearRampToValueAtTime(0.03, ctx.currentTime + 1.8)
-    gain2.gain.linearRampToValueAtTime(0, ctx.currentTime + 2.8)
-    osc2.connect(gain2).connect(ctx.destination)
+    // Layer 2: Warm resonance (blooms after the thud)
+    const tone = ctx.createOscillator()
+    const toneGain = ctx.createGain()
+    tone.type = 'triangle'
+    tone.frequency.setValueAtTime(220, t + 0.08)
+    toneGain.gain.setValueAtTime(0, t)
+    toneGain.gain.linearRampToValueAtTime(0, t + 0.06)
+    toneGain.gain.linearRampToValueAtTime(0.09, t + 0.15)
+    toneGain.gain.exponentialRampToValueAtTime(0.01, t + 1.0)
+    tone.connect(toneGain).connect(ctx.destination)
 
+    // Layer 3: Bright confirmation note (the "ding")
+    const ding = ctx.createOscillator()
+    const dingGain = ctx.createGain()
+    ding.type = 'sine'
+    ding.frequency.setValueAtTime(660, t + 0.2)
+    dingGain.gain.setValueAtTime(0, t)
+    dingGain.gain.linearRampToValueAtTime(0, t + 0.18)
+    dingGain.gain.linearRampToValueAtTime(0.06, t + 0.25)
+    dingGain.gain.exponentialRampToValueAtTime(0.01, t + 1.2)
+    ding.connect(dingGain).connect(ctx.destination)
+
+    // Layer 4: Subtle harmonic shimmer
     const shimmer = ctx.createOscillator()
     const shimmerGain = ctx.createGain()
     shimmer.type = 'sine'
-    shimmer.frequency.setValueAtTime(2400, ctx.currentTime + 0.5)
-    shimmer.frequency.exponentialRampToValueAtTime(3600, ctx.currentTime + 2.2)
-    shimmerGain.gain.setValueAtTime(0, ctx.currentTime)
-    shimmerGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4)
-    shimmerGain.gain.linearRampToValueAtTime(0.02, ctx.currentTime + 0.8)
-    shimmerGain.gain.linearRampToValueAtTime(0.015, ctx.currentTime + 2)
-    shimmerGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 2.8)
+    shimmer.frequency.setValueAtTime(1320, t + 0.22)
+    shimmerGain.gain.setValueAtTime(0, t)
+    shimmerGain.gain.linearRampToValueAtTime(0, t + 0.2)
+    shimmerGain.gain.linearRampToValueAtTime(0.015, t + 0.28)
+    shimmerGain.gain.exponentialRampToValueAtTime(0.001, t + 1.0)
     shimmer.connect(shimmerGain).connect(ctx.destination)
 
-    const sub = ctx.createOscillator()
-    const subGain = ctx.createGain()
-    sub.type = 'sine'
-    sub.frequency.setValueAtTime(60, ctx.currentTime)
-    sub.frequency.linearRampToValueAtTime(90, ctx.currentTime + 2)
-    subGain.gain.setValueAtTime(0, ctx.currentTime)
-    subGain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.2)
-    subGain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 1.5)
-    subGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 2.8)
-    sub.connect(subGain).connect(ctx.destination)
-
-    ;[osc1, osc2, shimmer, sub].forEach(o => { o.start(); o.stop(ctx.currentTime + 3) })
-    setTimeout(() => ctx.close(), 3500)
+    ;[thud, tone, ding, shimmer].forEach(o => { o.start(); o.stop(t + 1.5) })
+    setTimeout(() => ctx.close(), 2000)
   } catch {
     // Web Audio not available
   }
@@ -69,7 +69,7 @@ export default function Loader({ onDone }: { onDone: () => void }) {
   ]
 
   useEffect(() => {
-    playFuturisticSound()
+    playSignatureSound()
 
     const duration = 3000
     const start = Date.now()

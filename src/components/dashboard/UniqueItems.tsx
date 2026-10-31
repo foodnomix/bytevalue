@@ -1,16 +1,14 @@
 import { motion } from 'framer-motion'
 import { ClipboardList } from 'lucide-react'
+import { formatDateRange } from '../../lib/format'
 
 interface Props {
   count: number
-  month: number
-  year: number
+  startDate: string | null
+  endDate: string | null
 }
 
-const MONTH_NAMES = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
-export default function UniqueItems({ count, month, year }: Props) {
-  const monthName = MONTH_NAMES[month] ?? ''
+export default function UniqueItems({ count, startDate, endDate }: Props) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -27,7 +25,7 @@ export default function UniqueItems({ count, month, year }: Props) {
         <p style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{count} <span style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8' }}>items</span></p>
       </div>
       <div style={{ textAlign: 'right', flexShrink: 0 }}>
-        <p style={{ fontSize: 10, fontWeight: 600, color: '#94a3b8' }}>{monthName} {year}</p>
+        <p style={{ fontSize: 10, fontWeight: 600, color: '#94a3b8' }}>{formatDateRange(startDate, endDate)}</p>
         <p style={{ fontSize: 11, fontWeight: 700, color: '#4f46e5', marginTop: 2 }}>All Periods</p>
       </div>
     </motion.div>

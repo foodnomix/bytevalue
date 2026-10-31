@@ -1,10 +1,10 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { AlertCircle, LogOut, ChevronDown } from 'lucide-react'
+import { AlertCircle, LogOut, Archive, X, Calendar, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useReport } from '../hooks/useReport'
-import { useReportList } from '../hooks/useReportList'
-import { MONTH_NAMES, PLATFORM_COLOR } from '../lib/format'
+import { useReportList, type ReportGroup } from '../hooks/useReportList'
+import { PLATFORM_COLOR, formatReportNo, formatDateRange } from '../lib/format'
 import Loader from '../components/ui/Loader'
 import PayoutBreakdown from '../components/dashboard/PayoutBreakdown'
 import PerformanceOverview from '../components/dashboard/PerformanceOverview'
@@ -22,46 +22,241 @@ const TEXTURE: React.CSSProperties = {
 
 const PLATFORM_ORDER: Platform[] = ['swiggy', 'zomato']
 
+/* ── Report Archive Modal ─────────────────────────────────────── */
+
+function ReportArchiveModal({
+  reports,
+  currentReportNo,
+  onSelect,
+  onClose,
+}: {
+  reports: ReportGroup[]
+  currentReportNo: number | undefined
+  onSelect: (reportNo: number) => void
+  onClose: () => void
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    const scrollY = window.scrollY
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.left = '0'
+    document.body.style.right = '0'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      const top = document.body.style.top
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.left = ''
+      document.body.style.right = ''
+      window.scrollTo(0, parseInt(top || '0') * -1)
+    }
+  }, [onClose])
+
+  return (
+    <>
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 50,
+          background: 'rgba(11,17,32,0.75)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+        }}
+      />
+
+      {/* Modal */}
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 51,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        pointerEvents: 'none',
+        padding: 20,
+      }}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.92, y: 20 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 28, mass: 0.7 }}
+          style={{
+            pointerEvents: 'auto',
+            width: 'min(92vw, 480px)',
+            maxHeight: '80vh',
+            display: 'flex',
+            flexDirection: 'column',
+            background: '#fff',
+            borderRadius: 22,
+            boxShadow: '0 32px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,0,0,0.04)',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Header */}
+          <div style={{
+            padding: '20px 22px 16px',
+            borderBottom: '1px solid #f1f5f9',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            flexShrink: 0,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: 10,
+                background: 'linear-gradient(135deg, #0f172a, #1e293b)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Archive size={16} color="#94a3b8" />
+              </div>
+              <div>
+                <h2 style={{ fontSize: 16, fontWeight: 900, color: '#0f172a', margin: 0 }}>Report Archive</h2>
+                <p style={{ fontSize: 11, fontWeight: 500, color: '#94a3b8', margin: 0 }}>
+                  {reports.length} report{reports.length !== 1 ? 's' : ''} available
+                </p>
+              </div>
+            </div>
+            <motion.button
+              whileHover={{ scale: 1.1, background: '#fee2e2' }}
+              whileTap={{ scale: 0.9 }}
+              onClick={onClose}
+              style={{
+                width: 32, height: 32, borderRadius: 10,
+                border: '1px solid #e2e8f0', background: '#f8fafc',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', flexShrink: 0,
+              }}
+            >
+              <X size={14} color="#64748b" />
+            </motion.button>
+          </div>
+
+          {/* Column labels */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: '1fr 1fr 1fr',
+            padding: '10px 22px 8px',
+            borderBottom: '1px solid #f8fafc',
+            flexShrink: 0,
+          }}>
+            <span style={{ fontSize: 9, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.14em' }}>Report</span>
+            <span style={{ fontSize: 9, fontWeight: 800, color: '#F97316', textTransform: 'uppercase', letterSpacing: '0.14em' }}>Swiggy</span>
+            <span style={{ fontSize: 9, fontWeight: 800, color: '#E23744', textTransform: 'uppercase', letterSpacing: '0.14em' }}>Zomato</span>
+          </div>
+
+          {/* Report list */}
+          <div style={{ overflowY: 'auto', flex: 1 }} className="scrollbar-thin">
+            {reports.map((g, i) => {
+              const active = g.report_no === currentReportNo
+              const swiggy = g.platforms.find(p => p.platform === 'swiggy')
+              const zomato = g.platforms.find(p => p.platform === 'zomato')
+              const isLatest = i === 0
+
+              return (
+                <motion.button
+                  key={g.report_no}
+                  onClick={() => onSelect(g.report_no)}
+                  whileHover={{ background: active ? '#f0fdf4' : '#f8fafc' }}
+                  whileTap={{ scale: 0.995 }}
+                  style={{
+                    display: 'grid', gridTemplateColumns: '1fr 1fr 1fr',
+                    alignItems: 'center',
+                    width: '100%', textAlign: 'left',
+                    padding: '14px 22px',
+                    border: 'none',
+                    borderBottom: '1px solid #f8fafc',
+                    background: active ? '#f0fdf4' : 'transparent',
+                    cursor: 'pointer',
+                    transition: 'background 0.15s',
+                  }}
+                >
+                  {/* Report number */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {active ? (
+                      <CheckCircle2 size={15} color="#059669" style={{ flexShrink: 0 }} />
+                    ) : (
+                      <Calendar size={14} color="#cbd5e1" style={{ flexShrink: 0 }} />
+                    )}
+                    <div>
+                      <span style={{
+                        fontSize: 13, fontWeight: 800,
+                        color: active ? '#059669' : '#1e293b',
+                      }}>
+                        {formatReportNo(g.report_no)}
+                      </span>
+                      {isLatest && (
+                        <span style={{
+                          fontSize: 8, fontWeight: 800, color: '#059669',
+                          background: '#dcfce7', borderRadius: 4,
+                          padding: '1px 5px', marginLeft: 6,
+                          textTransform: 'uppercase', letterSpacing: '0.08em',
+                          verticalAlign: 'middle',
+                        }}>Latest</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Swiggy dates */}
+                  <span style={{ fontSize: 12, fontWeight: 600, color: swiggy ? '#475569' : '#d1d5db' }}>
+                    {swiggy ? formatDateRange(swiggy.period_start_date, swiggy.period_end_date) : '—'}
+                  </span>
+
+                  {/* Zomato dates */}
+                  <span style={{ fontSize: 12, fontWeight: 600, color: zomato ? '#475569' : '#d1d5db' }}>
+                    {zomato ? formatDateRange(zomato.period_start_date, zomato.period_end_date) : '—'}
+                  </span>
+                </motion.button>
+              )
+            })}
+          </div>
+        </motion.div>
+      </div>
+    </>
+  )
+}
+
+/* ── Main Page ────────────────────────────────────────────────── */
+
 export default function ReportPage() {
   const { user, logout } = useAuth()
   const [showLoader, setShowLoader] = useState(true)
   const [platform, setPlatform] = useState<Platform>('swiggy')
-  const [selectedMonth, setSelectedMonth] = useState<number | undefined>()
-  const [selectedYear, setSelectedYear] = useState<number | undefined>()
-  const [showHistory, setShowHistory] = useState(false)
+  const [selectedReportNo, setSelectedReportNo] = useState<number | undefined>()
+  const [showArchive, setShowArchive] = useState(false)
   const prevPlatformRef = useRef<Platform>('swiggy')
 
   const restaurantId = user?.type === 'restaurant' ? user.id : ''
   const restaurantName = user?.type === 'restaurant' ? user.name : ''
 
-  const { report, payout, performance, topItems, ledger, loading: dataLoading } = useReport(
-    restaurantId,
-    platform,
-    selectedMonth,
-    selectedYear,
-  )
-
+  const { platforms, loading: dataLoading } = useReport(restaurantId, selectedReportNo)
   const { reports: reportList } = useReportList(restaurantId)
+
+  const platData = platforms[platform]
+  const report = platData?.report ?? null
+  const payout = platData?.payout ?? []
+  const performance = platData?.performance ?? []
+  const topItems = platData?.topItems ?? []
+  const ledger = platData?.ledger ?? []
 
   const color = PLATFORM_COLOR[platform]
   const dataLoaded = !dataLoading
 
+  const availablePlatforms = Object.keys(platforms) as Platform[]
+  const hasPlatform = availablePlatforms.includes(platform)
+
   const direction = PLATFORM_ORDER.indexOf(platform) > PLATFORM_ORDER.indexOf(prevPlatformRef.current) ? 1 : -1
+
+  const currentReportNo = report?.report_no
 
   function switchPlatform(p: Platform) {
     prevPlatformRef.current = platform
     setPlatform(p)
-    setSelectedMonth(undefined)
-    setSelectedYear(undefined)
   }
 
-  function selectReport(month: number, year: number) {
-    setSelectedMonth(month)
-    setSelectedYear(year)
-    setShowHistory(false)
+  function selectReport(reportNo: number) {
+    setSelectedReportNo(reportNo)
+    setShowArchive(false)
   }
-
-  const historyForPlatform = reportList.filter(r => r.platform === platform)
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', ...TEXTURE }}>
@@ -69,6 +264,18 @@ export default function ReportPage() {
       {/* Loader overlay */}
       <AnimatePresence>
         {showLoader && <Loader onDone={() => setShowLoader(false)} />}
+      </AnimatePresence>
+
+      {/* Report Archive Modal */}
+      <AnimatePresence>
+        {showArchive && (
+          <ReportArchiveModal
+            reports={reportList}
+            currentReportNo={currentReportNo}
+            onSelect={selectReport}
+            onClose={() => setShowArchive(false)}
+          />
+        )}
       </AnimatePresence>
 
       {/* Header */}
@@ -113,7 +320,7 @@ export default function ReportPage() {
         )}
       </motion.header>
 
-      {/* Restaurant name + platform switcher */}
+      {/* Restaurant name + platform switcher + archive button */}
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -141,65 +348,95 @@ export default function ReportPage() {
           </motion.h1>
         </div>
 
-        {/* Platform tabs */}
-        <motion.div
-          animate={{ background: platform === 'swiggy' ? '#fff4ec' : '#fff0f1' }}
-          transition={{ duration: 0.4 }}
-          style={{ display: 'flex', gap: 4, borderRadius: 16, padding: '4px', flexShrink: 0, border: `1.5px solid ${PLATFORM_COLOR[platform]}33` }}
-        >
-          {(['swiggy', 'zomato'] as Platform[]).map(p => {
-            const pc = PLATFORM_COLOR[p]
-            const active = platform === p
-            return (
-              <motion.button
-                key={p}
-                onClick={() => switchPlatform(p)}
-                whileHover={{ scale: active ? 1 : 1.04 }}
-                whileTap={{ scale: 0.93 }}
-                style={{
-                  position: 'relative',
-                  padding: '9px 26px',
-                  borderRadius: 12,
-                  border: 'none',
-                  fontSize: 13,
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  background: 'transparent',
-                  color: active ? '#fff' : '#94a3b8',
-                  zIndex: 1,
-                  letterSpacing: '0.01em',
-                }}
-              >
-                {active && (
-                  <motion.div
-                    layoutId="platform-pill"
-                    style={{
-                      position: 'absolute', inset: 0,
-                      background: `linear-gradient(135deg, ${pc}, ${pc}cc)`,
-                      borderRadius: 12,
-                      zIndex: -1,
-                    }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 35, mass: 0.8 }}
-                  />
-                )}
-                {active && (
-                  <motion.div
-                    layoutId="platform-glow"
-                    style={{
-                      position: 'absolute', inset: -2,
-                      borderRadius: 14,
-                      background: `${pc}30`,
-                      filter: 'blur(8px)',
-                      zIndex: -2,
-                    }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 35, mass: 0.8 }}
-                  />
-                )}
-                {p.charAt(0).toUpperCase() + p.slice(1)}
-              </motion.button>
-            )
-          })}
-        </motion.div>
+        {/* Platform tabs + Archive icon */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <motion.div
+            animate={{ background: platform === 'swiggy' ? '#fff4ec' : '#fff0f1' }}
+            transition={{ duration: 0.4 }}
+            style={{ display: 'flex', gap: 4, borderRadius: 16, padding: '4px', border: `1.5px solid ${PLATFORM_COLOR[platform]}33` }}
+          >
+            {(['swiggy', 'zomato'] as Platform[]).map(p => {
+              const pc = PLATFORM_COLOR[p]
+              const active = platform === p
+              return (
+                <motion.button
+                  key={p}
+                  onClick={() => switchPlatform(p)}
+                  whileHover={{ scale: active ? 1 : 1.04 }}
+                  whileTap={{ scale: 0.93 }}
+                  style={{
+                    position: 'relative',
+                    padding: '9px 26px',
+                    borderRadius: 12,
+                    border: 'none',
+                    fontSize: 13,
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    background: 'transparent',
+                    color: active ? '#fff' : '#94a3b8',
+                    zIndex: 1,
+                    letterSpacing: '0.01em',
+                  }}
+                >
+                  {active && (
+                    <motion.div
+                      layoutId="platform-pill"
+                      style={{
+                        position: 'absolute', inset: 0,
+                        background: `linear-gradient(135deg, ${pc}, ${pc}cc)`,
+                        borderRadius: 12,
+                        zIndex: -1,
+                      }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 35, mass: 0.8 }}
+                    />
+                  )}
+                  {active && (
+                    <motion.div
+                      layoutId="platform-glow"
+                      style={{
+                        position: 'absolute', inset: -2,
+                        borderRadius: 14,
+                        background: `${pc}30`,
+                        filter: 'blur(8px)',
+                        zIndex: -2,
+                      }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 35, mass: 0.8 }}
+                    />
+                  )}
+                  {p.charAt(0).toUpperCase() + p.slice(1)}
+                </motion.button>
+              )
+            })}
+          </motion.div>
+
+          {/* Archive button */}
+          {reportList.length > 1 && (
+            <motion.button
+              onClick={() => setShowArchive(true)}
+              whileHover={{ scale: 1.08, background: '#f1f5f9' }}
+              whileTap={{ scale: 0.92 }}
+              style={{
+                width: 42, height: 42, borderRadius: 14,
+                border: '1.5px solid #e2e8f0', background: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', position: 'relative',
+              }}
+              title="Report Archive"
+            >
+              <Archive size={18} color="#64748b" />
+              <span style={{
+                position: 'absolute', top: -4, right: -4,
+                width: 18, height: 18, borderRadius: '50%',
+                background: '#0f172a', color: '#fff',
+                fontSize: 9, fontWeight: 800,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: '2px solid #fff',
+              }}>
+                {reportList.length}
+              </span>
+            </motion.button>
+          )}
+        </div>
       </motion.div>
 
       {/* Main content */}
@@ -220,8 +457,8 @@ export default function ReportPage() {
             </motion.div>
           )}
 
-          {/* No report */}
-          {!showLoader && dataLoaded && !report && (
+          {/* No report for this platform */}
+          {!showLoader && dataLoaded && !hasPlatform && (
             <motion.div key="no-report"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               style={{ textAlign: 'center', padding: '100px 20px' }}
@@ -230,16 +467,20 @@ export default function ReportPage() {
                 <AlertCircle size={28} color="#94a3b8" />
               </div>
               <h2 style={{ fontSize: 18, fontWeight: 900, color: '#1e293b', margin: '0 0 8px' }}>
-                No {platform === 'swiggy' ? 'Swiggy' : 'Zomato'} data yet
+                No {platform === 'swiggy' ? 'Swiggy' : 'Zomato'} data{currentReportNo ? ` in ${formatReportNo(currentReportNo)}` : ''}
               </h2>
-              <p style={{ color: '#94a3b8', fontSize: 13 }}>No report has been uploaded for this platform.</p>
+              <p style={{ color: '#94a3b8', fontSize: 13 }}>
+                {availablePlatforms.length > 0
+                  ? `This report only has ${availablePlatforms.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' and ')} data.`
+                  : 'No report has been uploaded yet.'}
+              </p>
             </motion.div>
           )}
 
           {/* Dashboard */}
-          {!showLoader && dataLoaded && report && (
+          {!showLoader && dataLoaded && report && hasPlatform && (
             <motion.div
-              key={`${restaurantId}-${platform}-${report.month}-${report.year}`}
+              key={`${restaurantId}-${platform}-${report.report_no}`}
               custom={direction}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -247,7 +488,7 @@ export default function ReportPage() {
               transition={{ duration: 0.3, ease: 'easeInOut' }}
               style={{ display: 'flex', flexDirection: 'column', gap: 36 }}
             >
-              {/* Date range pill + history dropdown */}
+              {/* Report info pill */}
               <motion.div
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -262,124 +503,40 @@ export default function ReportPage() {
                 }}>
                   <div style={{ width: 7, height: 7, borderRadius: '50%', background: color }} />
                   <span style={{ fontSize: 11, fontWeight: 700, color: platform === 'swiggy' ? '#9a3412' : '#881337' }}>
-                    {platform === 'swiggy' ? 'Swiggy' : 'Zomato'} Report
+                    {platform === 'swiggy' ? 'Swiggy' : 'Zomato'}
                   </span>
                   <span style={{ color: `${color}66` }}>·</span>
                   <span style={{ fontSize: 11, fontWeight: 800, color: platform === 'swiggy' ? '#7c2d12' : '#9f1239' }}>
-                    {MONTH_NAMES[report.month]} {report.year}
+                    {formatReportNo(report.report_no)}
+                  </span>
+                  <span style={{ color: `${color}66` }}>·</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: platform === 'swiggy' ? '#9a3412' : '#881337' }}>
+                    {formatDateRange(report.period_start_date, report.period_end_date)}
                   </span>
                 </div>
 
-                {/* History button */}
-                {historyForPlatform.length > 1 && (
-                  <div style={{ position: 'relative' }}>
-                    <button
-                      onClick={() => setShowHistory(!showHistory)}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: 4,
-                        background: '#fff', border: '1px solid #e2e8f0', borderRadius: 999,
-                        padding: '5px 12px', fontSize: 11, fontWeight: 700, color: '#64748b',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Previous months
-                      <ChevronDown size={12} style={{ transform: showHistory ? 'rotate(180deg)' : undefined, transition: 'transform 0.2s' }} />
-                    </button>
-                    {showHistory && (
-                      <div style={{
-                        position: 'absolute', top: '100%', left: 0, marginTop: 4, zIndex: 10,
-                        background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12,
-                        padding: 6, minWidth: 160, boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                      }}>
-                        {historyForPlatform.map(r => (
-                          <button
-                            key={r.id}
-                            onClick={() => selectReport(r.month, r.year)}
-                            style={{
-                              display: 'block', width: '100%', textAlign: 'left',
-                              padding: '8px 12px', border: 'none', borderRadius: 8,
-                              background: r.month === report.month && r.year === report.year ? `${color}15` : 'transparent',
-                              color: '#1e293b', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                            }}
-                          >
-                            {MONTH_NAMES[r.month]} {r.year}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                {report.is_full_month && (
+                  <span style={{
+                    fontSize: 10, fontWeight: 700, color: '#059669',
+                    background: '#ecfdf5', border: '1px solid #a7f3d0',
+                    borderRadius: 999, padding: '3px 10px',
+                  }}>
+                    Full month
+                  </span>
                 )}
               </motion.div>
 
-              <CardExpander
-                title="Payout Breakdown"
-                description="A step-by-step view of your money: what customers paid, what was deducted, and what reached your bank account."
-                accentColor={color}
-                helpItems={platform === 'zomato' ? [
-                  { label: 'Net Order Value', text: 'What your customers actually paid for your food: sales after discounts, plus GST. This is the starting point of your payout.' },
-                  { label: 'Base Commission', text: "Zomato's commission on your orders, at your agreed rate. Calculated on the commissionable value." },
-                  { label: 'Payment Fee', text: 'What Zomato charges for collecting online payments from your customers.' },
-                  { label: 'Service Fee (Total)', text: "Everything Zomato charged for its service: commission, long-distance and payment fees, after any fee discounts." },
-                  { label: 'GST on Zomato Fees', text: "The 18% GST charged on Zomato's service fee. This is separate from the GST your customers pay on food." },
-                  { label: 'Ads & Promotions', text: 'What you spent on Zomato ads and promotions to bring in more orders.' },
-                  { label: 'Total Zomato Take', text: "Everything that went to Zomato: the service fee, the GST on it, and ads." },
-                  { label: 'Govt Taxes', text: "Taxes taken out of your payout: customer GST, GST on Zomato's fee, and TDS." },
-                  { label: 'TDS (Income Tax)', text: 'Income tax (0.1% of net sales) deducted on your behalf. You can claim it back when you file your income tax return.' },
-                  { label: 'Customer Complaints', text: 'Amounts recovered from you for customer complaints, such as missing or wrong items.' },
-                  { label: 'Cancellation Credits', text: 'Money Zomato paid you for orders cancelled after you accepted them. Added to your payout.' },
-                  { label: 'Your Bank Payout', text: 'The final amount Zomato credits to your bank account for the month.' },
-                  { label: 'Retained %', text: 'Out of every ₹100 of net sales, how much reached your bank account.' },
-                ] : [
-                  { label: 'Net Order Value', text: 'What your customers actually paid for your food: sales after discounts, plus GST. This is the starting point of your payout.' },
-                  { label: 'Swiggy Fees (Total)', text: "Everything Swiggy charged for its service, such as commission and payment collection." },
-                  { label: 'GST on Swiggy Fees', text: "The GST charged on Swiggy's fees. This is separate from the GST your customers pay on food." },
-                  { label: 'Ads & Promotions', text: 'What you spent on Swiggy ads and promotions, plus other Swiggy charges.' },
-                  { label: 'Govt Taxes', text: "Taxes taken out of your payout: customer GST, GST on Swiggy's fees, and TDS." },
-                  { label: 'TDS (Income Tax)', text: 'Income tax deducted on your behalf. You can claim it back when you file your income tax return.' },
-                  { label: 'Complaints & Cancellations', text: 'Amounts deducted for customer complaints and for cancellations charged to you.' },
-                  { label: 'Your Bank Payout', text: 'The final amount Swiggy credits to your bank account for this period.' },
-                  { label: 'Retained %', text: 'Out of every ₹100 of net sales, how much reached your bank account.' },
-                ]}
-              >
-                <PayoutBreakdown periods={payout} accentColor={color} platform={platform} />
-              </CardExpander>
+              <PayoutBreakdown periods={payout} accentColor={color} platform={platform} />
 
-              <CardExpander
-                title="Performance Overview"
-                description="Tracks your order volume and revenue for the selected settlement period."
-                accentColor={color}
-                helpItems={platform === 'zomato' ? [
-                  { label: 'Total Orders', text: 'Every order placed with you on Zomato this month, delivered or cancelled.' },
-                  { label: 'Delivered', text: 'Orders that reached the customer. All sales figures on this page are based on these.' },
-                  { label: 'Cancelled', text: "Orders cancelled or rejected before delivery. They don't count towards your sales." },
-                  { label: 'Avg Order Value', text: 'What a customer paid you on an average delivered order, including GST.' },
-                  { label: 'Gross Subtotal', text: 'The menu value of everything you delivered, before any discounts.' },
-                  { label: 'Total Discounts', text: 'Discounts you funded: promo codes, BOGO, freebie and Gold offers, and relisting discounts.' },
-                  { label: 'Packaging', text: 'Packaging charges your customers paid on delivered orders.' },
-                  { label: 'Customer GST', text: 'The 5% GST your customers paid on their food. Zomato pays it to the government for you.' },
-                  { label: 'Net Sales', text: 'Your food sales after discounts, without GST. This is what your earnings are measured against.' },
-                ] : [
-                  { label: 'Total Orders', text: 'Every order placed with you on Swiggy in this period, delivered or cancelled.' },
-                  { label: 'Delivered', text: 'Orders that reached the customer. All sales figures on this page are based on these.' },
-                  { label: 'Cancelled', text: "Orders cancelled before delivery. They don't count towards your sales." },
-                  { label: 'Avg Order Value', text: 'What a customer paid you on an average delivered order, including GST.' },
-                  { label: 'Subtotal', text: 'The menu value of everything you delivered, before any discounts.' },
-                  { label: 'Total Discounts', text: 'Your share of the discounts and offers given to customers.' },
-                  { label: 'Packaging', text: 'Packaging charges your customers paid on delivered orders.' },
-                  { label: 'Customer GST', text: 'The GST your customers paid on their food. Swiggy pays it to the government for you.' },
-                  { label: 'Net Sales', text: 'Your food sales after discounts, without GST. This is what your earnings are measured against.' },
-                ]}
-              >
-                <PerformanceOverview periods={performance} accentColor={color} platform={platform} />
-              </CardExpander>
+              <PerformanceOverview periods={performance} accentColor={color} platform={platform} />
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <CardExpander
                   title="Top 5 Items"
-                  description="Your five best-selling menu items ranked by units sold during each fortnight. The bar width shows each item's relative share compared to the top seller. Switch between the first half (1st to 15th) and second half (16th to end) of the month."
+                  description="Your five best-selling menu items ranked by units sold during each period. The bar width shows each item's relative share compared to the top seller."
                   accentColor={color}
                 >
-                  <TopItems items={topItems} accentColor={color} month={report.month} year={report.year} />
+                  <TopItems items={topItems} accentColor={color} />
                 </CardExpander>
 
                 <CardExpander
@@ -387,7 +544,11 @@ export default function ReportPage() {
                   description="The total number of distinct menu items that received at least one order during this period. A higher number means more of your menu is getting discovered by customers."
                   accentColor={color}
                 >
-                  <UniqueItems count={ledger.length} month={report.month} year={report.year} />
+                  <UniqueItems
+                    count={ledger.length}
+                    startDate={report.period_start_date}
+                    endDate={report.period_end_date}
+                  />
                 </CardExpander>
 
                 <ItemLedger items={ledger} accentColor={color} />

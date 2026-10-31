@@ -6,25 +6,19 @@ import type { TopItem } from '../../types'
 interface Props {
   items: TopItem[]
   accentColor: string
-  month: number
-  year: number
 }
 
 const RANK_COLORS = ['#FC8019', '#64748b', '#64748b', '#64748b', '#64748b']
 
-const MONTH_NAMES = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+export default function TopItems({ items, accentColor }: Props) {
+  const periods = Array.from(new Set(items.map(i => i.period_identifier).filter(Boolean))) as string[]
+  const [activeIdx, setActiveIdx] = useState(0)
+  const activePeriod = periods[activeIdx] ?? null
 
-export default function TopItems({ items, accentColor, month, year }: Props) {
-  const [fortnight, setFortnight] = useState<1 | 2>(1)
-
-  const visible = items.filter(i => i.fortnight === fortnight).sort((a, b) => a.rank - b.rank)
-  const maxUnits = Math.max(...visible.map(i => i.units))
-
-  const monthName = MONTH_NAMES[month] ?? ''
-  const lastDay = new Date(year, month, 0).getDate()
-  const label1 = `1 – 15 ${monthName}`
-  const label2 = `16 – ${lastDay} ${monthName}`
-  const headerLabel = fortnight === 1 ? `1 – 15 ${monthName} ${year}` : `16 – ${lastDay} ${monthName} ${year}`
+  const visible = items
+    .filter(i => i.period_identifier === activePeriod)
+    .sort((a, b) => a.rank - b.rank)
+  const maxUnits = Math.max(...visible.map(i => i.units), 1)
 
   return (
     <section>
@@ -34,48 +28,55 @@ export default function TopItems({ items, accentColor, month, year }: Props) {
         tooltip="Your five best-performing menu items by units sold this period. Bar width shows each item's share of total top-5 revenue."
       />
 
-      {/* Fortnight switcher */}
-      <div style={{ display: 'flex', gap: 6, background: '#f1f5f9', borderRadius: 14, padding: 4, width: 'fit-content', marginBottom: 18 }}>
-        {([1, 2] as const).map(f => (
-          <button
-            key={f}
-            onClick={() => setFortnight(f)}
-            style={{
-              padding: '7px 18px',
-              borderRadius: 10,
-              border: '1px solid transparent',
-              fontSize: 12,
-              fontWeight: 800,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              transition: 'all 0.2s',
-              background: fortnight === f ? 'linear-gradient(135deg,#0f172a,#1e293b)' : 'transparent',
-              color: fortnight === f ? '#fff' : '#64748b',
-              boxShadow: fortnight === f ? '0 4px 12px rgba(15,23,42,0.25)' : 'none',
-            }}
-          >
-            {f === 1 ? label1 : label2}
-          </button>
-        ))}
-      </div>
+      {/* Period switcher */}
+      {periods.length > 1 && (
+        <div style={{ display: 'flex', gap: 6, background: '#f1f5f9', borderRadius: 14, padding: 4, width: 'fit-content', marginBottom: 18, overflowX: 'auto' }} className="scrollbar-hide">
+          {periods.map((p, i) => (
+            <button
+              key={p}
+              onClick={() => setActiveIdx(i)}
+              style={{
+                padding: '7px 18px',
+                borderRadius: 10,
+                border: '1px solid transparent',
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.2s',
+                background: activeIdx === i ? 'linear-gradient(135deg,#0f172a,#1e293b)' : 'transparent',
+                color: activeIdx === i ? '#fff' : '#64748b',
+                boxShadow: activeIdx === i ? '0 4px 12px rgba(15,23,42,0.25)' : 'none',
+              }}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div style={{ background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9', overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,0.05)' }}>
         {/* Header */}
         <div style={{ background: `linear-gradient(135deg,${accentColor},#ea580c)`, padding: '14px 22px' }}>
           <span style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
-            {headerLabel}
+            {activePeriod ?? 'Top Items'}
           </span>
         </div>
 
         <AnimatePresence mode="wait">
           <motion.ul
-            key={fortnight}
-            initial={{ opacity: 0, x: fortnight === 1 ? -20 : 20 }}
+            key={activePeriod}
+            initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: fortnight === 1 ? 20 : -20 }}
+            exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.3 }}
             style={{ listStyle: 'none', padding: 0, margin: 0 }}
           >
+            {visible.length === 0 && (
+              <li style={{ padding: '28px 22px', textAlign: 'center', color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>
+                No items for this period
+              </li>
+            )}
             {visible.map((item, i) => (
               <motion.li
                 key={item.id}

@@ -22,12 +22,13 @@ export interface Report {
   id: string
   restaurant_id: string
   platform: Platform
+  report_no: number
   month: number
   year: number
-  period_type: 'MONTHLY' | 'WEEKLY' | 'BI_WEEKLY'
-  period_number: number | null
   period_start_date: string | null
   period_end_date: string | null
+  is_full_month: boolean | null
+  source_folder?: string | null
   status: 'generated' | 'draft' | 'error'
   created_at?: string
   updated_at?: string
@@ -82,7 +83,7 @@ export interface TopItem {
   id: string
   report_id: string
   period_identifier: string | null
-  fortnight: number
+  fortnight: number | null
   rank: number
   item_name: string
   units: number
