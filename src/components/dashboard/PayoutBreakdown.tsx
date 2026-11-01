@@ -54,11 +54,19 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
   // Card 4: Govt Taxes (already includes TDS)
   const govtTotal = overall.govt_tax
 
-  // Card 5: Adjustments (Zomato: other_deductions + refunds; Swiggy: complaints)
-  const adjustmentVal = z
+  // Card 5: Cancellations (Zomato: other_deductions + refunds; Swiggy: complaints)
+  const cancellationVal = z
     ? n(overall.other_deductions) + n(overall.refunds)
     : n(overall.complaints)
-  const showAdjustments = adjustmentVal > 0
+
+  // Govt tax breakdown
+  const customerGst = overall.govt_tax - n(overall.tds)
+  const restaurantGst = n(overall.platform_gst)
+
+  // Customer point of view: what % of customer's spend reaches the restaurant
+  const customerPovPct = overall.customer_paid
+    ? Math.round((overall.net_payout / overall.customer_paid) * 1000) / 10
+    : 0
 
   const cards: CardDef[] = [
     {
@@ -85,7 +93,7 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
       value: platformTotal,
       color: '#f43f5e',
       icon: '↓',
-      subtitle: z ? 'Commission + fees + GST on fees' : 'Fees + GST on fees',
+      subtitle: z ? 'Commission, fees, and GST on fees' : 'Fees and GST on fees',
       pct: overall.platform_fee_pct,
       popupTitle: z ? 'Zomato Charges' : 'Swiggy Charges',
       popupDesc: z
@@ -127,20 +135,20 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
       value: adsVal,
       color: '#8b5cf6',
       icon: '↓',
-      subtitle: z ? 'Ads and promotions on Zomato' : 'Ads and promotions on Swiggy',
+      subtitle: z ? 'Spent on Zomato ads' : 'Spent on Swiggy ads',
       pct: overall.ads_spend_pct,
       popupTitle: 'Ads',
       popupDesc: z
-        ? 'What you spent on Zomato ads and promotions to bring in more orders.'
-        : 'What you spent on Swiggy ads and promotions, plus other Swiggy charges.',
+        ? 'Your total spend on Zomato ads to bring in more orders.'
+        : 'Your total spend on Swiggy ads and other platform charges.',
       mainValue: INR(adsVal),
       helpItems: [
-        { label: 'Ads', value: INR(adsVal),
+        { label: 'Total Ad Spend', value: INR(adsVal),
           text: z
-            ? 'What you spent on Zomato ads and promotions to bring in more orders.'
-            : 'What you spent on Swiggy ads and promotions, plus other Swiggy charges.' },
-        { label: 'Ads %', value: `${overall.ads_spend_pct}%`,
-          text: 'Your ad spend as a share of what your customers paid.' },
+            ? 'Amount spent on Zomato ads this period.'
+            : 'Amount spent on Swiggy ads and other charges this period.' },
+        { label: 'Ads as % of Revenue', value: `${overall.ads_spend_pct ?? 0}%`,
+          text: 'Your ad spend as a share of what customers paid.' },
       ],
     },
     {
@@ -149,70 +157,69 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
       value: govtTotal,
       color: '#f59e0b',
       icon: '↓',
-      subtitle: 'GST + TDS deducted from payout',
+      subtitle: 'Customer GST, restaurant GST, TDS',
       pct: overall.govt_tax_pct,
       popupTitle: 'Government Taxes',
-      popupDesc: z
-        ? "Taxes taken out of your payout, including customer GST, GST on Zomato's fee, and TDS."
-        : "Taxes taken out of your payout, including customer GST, GST on Swiggy's fees, and TDS.",
+      popupDesc: 'All taxes deducted from your payout, split by who they apply to.',
       mainValue: INR(govtTotal),
       helpItems: [
         { label: 'Govt Taxes (Total)', value: INR(govtTotal),
-          text: `All taxes deducted from your payout. ${overall.govt_tax_pct}% of revenue.` },
+          text: `${overall.govt_tax_pct ?? 0}% of revenue.` },
+        ...(customerGst > 0 ? [
+          { label: 'GST Paid by Customer', value: INR(customerGst),
+            text: 'The 5% GST your customers paid on their food. The platform collects this and deposits it to the government.' },
+        ] : []),
+        ...(restaurantGst > 0 ? [
+          { label: 'GST Paid by Restaurant', value: INR(restaurantGst),
+            text: z
+              ? "18% GST charged on Zomato's service fee. You can claim this as input tax credit."
+              : "GST charged on Swiggy's service fee. You can claim this as input tax credit." },
+        ] : []),
         ...(n(overall.tds) > 0 ? [
           { label: 'TDS (Income Tax)', value: INR(n(overall.tds)),
-            text: 'Income tax deducted on your behalf (0.1% of net sales). You can claim it back when you file your ITR.' },
+            text: 'Income tax deducted at source (0.1% of net sales). Claim it back when you file your ITR.' },
         ] : []),
       ],
     },
   ]
 
-  if (showAdjustments) {
-    if (z) {
-      const helpItems: { label: string; text: string; value?: string }[] = []
-      if (n(overall.other_deductions) > 0) {
-        helpItems.push({
-          label: 'Other Deductions', value: INR(n(overall.other_deductions)),
-          text: 'Compensation for customer complaints, Hyperpure charges, and other order-level deductions subtracted from your payout.',
-        })
-      }
-      if (n(overall.refunds) > 0) {
-        helpItems.push({
-          label: 'Cancellation Credits', value: `+${INR(n(overall.refunds))}`,
-          text: 'Money paid to you for orders that were cancelled after you accepted them. This is added to your payout.',
-        })
-      }
-      cards.push({
-        key: 'adjustments',
-        label: 'Adjustments',
-        value: adjustmentVal,
-        color: '#ef4444',
-        icon: '↓',
-        subtitle: 'Deductions and credits on your payout',
-        pct: null,
-        popupTitle: 'Adjustments',
-        popupDesc: 'Other deductions and cancellation credits that affect your final payout.',
-        mainValue: INR(adjustmentVal),
-        helpItems,
-      })
-    } else {
-      cards.push({
-        key: 'complaints',
-        label: 'Complaints',
-        value: adjustmentVal,
-        color: '#ef4444',
-        icon: '↓',
-        subtitle: 'Complaint and cancellation deductions',
-        pct: null,
-        popupTitle: 'Complaints & Cancellations',
-        popupDesc: 'Amounts deducted for customer complaints and for cancellations charged to you.',
-        mainValue: INR(adjustmentVal),
-        helpItems: [
-          { label: 'Complaints & Cancellations', value: INR(adjustmentVal),
-            text: 'Amounts deducted for customer complaints and cancellations charged to you.' },
-        ],
-      })
-    }
+  {
+    const cancellationHelpItems: { label: string; text: string; value?: string }[] = z
+      ? [
+          ...(n(overall.other_deductions) > 0 ? [{
+            label: 'Order Deductions', value: INR(n(overall.other_deductions)),
+            text: 'Compensation for customer complaints, Hyperpure charges, and other order-level deductions.',
+          }] : []),
+          ...(n(overall.refunds) > 0 ? [{
+            label: 'Cancellation Credits', value: `+${INR(n(overall.refunds))}`,
+            text: 'Money paid to you for orders cancelled after you accepted them.',
+          }] : []),
+          ...(cancellationVal === 0 ? [{
+            label: 'No Cancellations', value: INR(0),
+            text: 'No cancellation or complaint deductions this period.',
+          }] : []),
+        ]
+      : [
+          { label: 'Complaints & Cancellations', value: INR(cancellationVal),
+            text: cancellationVal > 0
+              ? 'Amounts deducted for customer complaints and cancellations charged to you.'
+              : 'No complaint or cancellation deductions this period.' },
+        ]
+    cards.push({
+      key: 'cancellations',
+      label: 'Cancellations',
+      value: cancellationVal,
+      color: '#ef4444',
+      icon: '↓',
+      subtitle: cancellationVal > 0 ? 'Complaint and cancellation deductions' : 'No deductions this period',
+      pct: null,
+      popupTitle: 'Cancellations',
+      popupDesc: z
+        ? 'Deductions for complaints, cancellations, and any credits paid back to you.'
+        : 'Amounts deducted from your payout for customer complaints and order cancellations.',
+      mainValue: INR(cancellationVal),
+      helpItems: cancellationHelpItems,
+    })
   }
 
   return (
@@ -320,12 +327,18 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
               : 'Credited to your bank account by Swiggy for this period.'}
           </p>
 
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 10, background: 'rgba(16,185,129,0.14)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 8, padding: '4px 10px' }}>
-            <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#10b981' }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#6ee7b7' }}>{retainedPct}% of revenue retained</span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(16,185,129,0.14)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 8, padding: '4px 10px' }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#10b981' }} />
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#6ee7b7' }}>{retainedPct}% of revenue retained</span>
+            </div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'rgba(96,165,250,0.14)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: 8, padding: '4px 10px' }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#60a5fa' }} />
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#93c5fd' }}>{customerPovPct}% of customer spend</span>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
             <span style={{ fontSize: 10, fontWeight: 700, background: 'rgba(255,255,255,0.07)', color: '#94a3b8', borderRadius: 7, padding: '3px 9px' }}>
               {periods.length - 1} Settlement Period{periods.length - 1 !== 1 ? 's' : ''}
             </span>

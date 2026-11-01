@@ -87,7 +87,6 @@ export default function PerformanceOverview({ periods, accentColor, platform }: 
                 sub={
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                     <span style={{ fontSize: 10, fontWeight: 700, background: '#dbeafe', color: '#1d4ed8', borderRadius: 7, padding: '3px 8px' }}>{p.delivered} Delivered</span>
-                    {p.cancelled > 0 && <span style={{ fontSize: 10, fontWeight: 700, background: '#fee2e2', color: '#dc2626', borderRadius: 7, padding: '3px 8px' }}>{p.cancelled} Cancelled</span>}
                   </div>
                 }
               />
@@ -95,11 +94,11 @@ export default function PerformanceOverview({ periods, accentColor, platform }: 
 
             <CardExpander
               title="Gross Subtotal"
-              description="The menu value of everything you delivered, before any discounts."
+              description="Total menu value of all delivered orders, before discounts or taxes."
               accentColor={accentColor}
               mainValue={INR(p.gross_subtotal)}
               helpItems={[
-                { label: 'Gross Subtotal', value: INR(p.gross_subtotal), text: 'The menu value of everything you delivered, before any discounts.' },
+                { label: 'Gross Subtotal', value: INR(p.gross_subtotal), text: 'Total menu value of all delivered orders, before discounts or taxes.' },
               ]}
             >
               <StatCard
@@ -152,6 +151,34 @@ export default function PerformanceOverview({ periods, accentColor, platform }: 
                 stripColor="#10b981"
                 value={<AnimatedNumber value={p.aov} format={v => INR(Math.round(v))} />}
                 delay={0.15}
+              />
+            </CardExpander>
+
+            <CardExpander
+              title="Cancellations"
+              description={p.cancelled > 0
+                ? `${p.cancelled} order${p.cancelled !== 1 ? 's' : ''} cancelled or rejected before delivery. These do not count towards your sales.`
+                : 'No orders were cancelled in this period.'}
+              accentColor={accentColor}
+              mainValue={String(p.cancelled)}
+              helpItems={[
+                { label: 'Cancelled Orders', value: String(p.cancelled), text: "Orders cancelled or rejected before delivery. They don't affect your sales figures." },
+                ...(p.total_orders > 0 ? [{ label: 'Cancellation Rate', value: `${(p.total_orders ? (p.cancelled / p.total_orders) * 100 : 0).toFixed(1)}%`, text: 'Cancelled orders as a share of total orders placed.' }] : []),
+              ]}
+            >
+              <StatCard
+                label="Cancellations"
+                accentColor={accentColor}
+                stripColor="#ef4444"
+                value={<AnimatedNumber value={p.cancelled} />}
+                delay={0.2}
+                sub={
+                  p.total_orders > 0
+                    ? <p style={{ fontSize: 10, fontWeight: 700, color: p.cancelled > 0 ? '#ef4444' : '#10b981', margin: 0 }}>
+                        {(p.cancelled / p.total_orders * 100).toFixed(1)}% cancellation rate
+                      </p>
+                    : undefined
+                }
               />
             </CardExpander>
           </div>
