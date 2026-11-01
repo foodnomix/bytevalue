@@ -16,7 +16,7 @@ export default function DonutChart({ segments, size = 120, strokeWidth = 14, cen
   const cx = size / 2
   const cy = size / 2
 
-  const total = segments.reduce((s, seg) => s + seg.value, 0)
+  const total = segments.reduce((s, seg) => s + (seg.value ?? 0), 0)
   let offset = 0
 
   return (
@@ -24,11 +24,12 @@ export default function DonutChart({ segments, size = 120, strokeWidth = 14, cen
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
         {/* Track */}
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={strokeWidth} />
-        {segments.map((seg, i) => {
-          const dash = (seg.value / total) * circ
+        {total > 0 && segments.map((seg, i) => {
+          const v = seg.value ?? 0
+          const dash = (v / total) * circ
           const gap = circ - dash
           const currentOffset = -offset * (circ / total)
-          offset += seg.value
+          offset += v
           return (
             <motion.circle
               key={i}

@@ -37,6 +37,8 @@ export default function StatCard({ label, value, sub, labelColor, delay = 0, acc
         border: `1px solid ${borderColor}`,
         boxShadow: shadow,
         padding: '16px 18px',
+        height: '100%',
+        boxSizing: 'border-box',
       }}
     >
       <p style={{ fontSize: 10, fontWeight: 800, color: headingColor, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 7 }}>{label}</p>

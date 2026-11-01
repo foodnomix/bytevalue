@@ -121,7 +121,7 @@ export default function PerformanceOverview({ periods, accentColor, platform }: 
                 { label: 'Total Discounts', value: INR(p.discounts), text: z
                   ? 'Discounts you funded, including promo codes, BOGO, freebie, Gold, and relisting offers.'
                   : 'Your share of the discounts and offers given to customers.' },
-                { label: 'Discount %', value: `${((p.discounts / p.gross_subtotal) * 100).toFixed(1)}%`, text: 'Share of your gross subtotal that went to discounts.' },
+                { label: 'Discount %', value: `${(p.gross_subtotal ? (p.discounts / p.gross_subtotal) * 100 : 0).toFixed(1)}%`, text: 'Share of your gross subtotal that went to discounts.' },
               ]}
             >
               <StatCard
@@ -131,7 +131,7 @@ export default function PerformanceOverview({ periods, accentColor, platform }: 
                 value={<AnimatedNumber value={p.discounts} format={INR} />}
                 delay={0.1}
                 sub={
-                  <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', margin: 0 }}>{((p.discounts / p.gross_subtotal) * 100).toFixed(1)}% of subtotal</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', margin: 0 }}>{(p.gross_subtotal ? (p.discounts / p.gross_subtotal) * 100 : 0).toFixed(1)}% of subtotal</p>
                 }
               />
             </CardExpander>

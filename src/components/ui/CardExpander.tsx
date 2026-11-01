@@ -61,7 +61,7 @@ export default function CardExpander({ children, title, description, accentColor
         whileHover={{ scale: 1.008 }}
         whileTap={{ scale: 0.997 }}
         transition={{ duration: 0.15 }}
-        style={{ cursor: 'pointer' }}
+        style={{ cursor: 'pointer', height: '100%' }}
       >
         {children}
       </motion.div>

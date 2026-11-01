@@ -33,13 +33,13 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
   if (!overall) return null
 
   const z = platform === 'zomato'
-  const retainedPct = overall.retained_pct ?? overall.net_payout_pct
+  const retainedPct = overall.retained_pct ?? overall.net_payout_pct ?? 0
 
   const donutSegments = [
-    { value: retainedPct,              color: '#10b981' },
-    { value: overall.platform_fee_pct, color: 'rgba(255,255,255,0.18)' },
-    { value: overall.govt_tax_pct,     color: 'rgba(255,255,255,0.10)' },
-    { value: overall.ads_spend_pct,    color: 'rgba(255,255,255,0.06)' },
+    { value: retainedPct ?? 0,              color: '#10b981' },
+    { value: overall.platform_fee_pct ?? 0, color: 'rgba(255,255,255,0.18)' },
+    { value: overall.govt_tax_pct ?? 0,     color: 'rgba(255,255,255,0.10)' },
+    { value: overall.ads_spend_pct ?? 0,    color: 'rgba(255,255,255,0.06)' },
   ]
 
   // Card 1: Net Order Value
@@ -245,6 +245,8 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
                 border: `1px solid ${accentColor}28`,
                 boxShadow: `0 2px 14px ${accentColor}0d, 0 1px 3px rgba(0,0,0,0.04)`,
                 padding: '16px 18px 18px',
+                height: '100%',
+                boxSizing: 'border-box',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
