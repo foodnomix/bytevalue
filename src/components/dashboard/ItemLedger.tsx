@@ -57,7 +57,7 @@ function Row({ item, rank, accentColor, dark }: {
         flexShrink: 0, zIndex: 1,
       }}>{rank}</span>
 
-      {/* Name — single line, truncated */}
+      {/* Name */}
       <span style={{
         flex: 1, minWidth: 0,
         fontSize: 12, fontWeight: 600, color: textMain,
@@ -232,7 +232,7 @@ export default function ItemLedger({ items, accentColor }: Props) {
                     <div style={{ position: 'absolute', top: -6, left: 120, width: 12, height: 12, background: '#fff', border: `1px solid ${accentColor}33`, borderRight: 'none', borderBottom: 'none', transform: 'rotate(45deg)' }} />
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
                       <p style={{ fontSize: 12, fontWeight: 500, color: '#475569', margin: 0, lineHeight: 1.65 }}>
-                        A full list of every menu item sold this period — ranked by units sold. Shows net payout per unit, margin percentage, and total earnings per item.
+                        Every menu item sold this period, ranked by units sold. Shows net payout per unit, margin percentage, and total earnings per item.
                       </p>
                       <button onClick={() => setInfoOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, flexShrink: 0, color: '#94a3b8' }}>
                         <X size={13} />
@@ -280,7 +280,7 @@ export default function ItemLedger({ items, accentColor }: Props) {
             transition={{ duration: 0.2 }}
             style={{ position: 'fixed', inset: 0, zIndex: 60, background: '#0b1120', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            {/* Panel — inset card in portrait, full screen in landscape */}
+            {/* Panel */}
             <div className="fs-panel">
               {/* Header */}
               <div style={{

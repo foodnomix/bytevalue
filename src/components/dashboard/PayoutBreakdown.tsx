@@ -70,12 +70,12 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
       subtitle: 'What customers paid for your food',
       pct: null,
       popupTitle: 'Net Order Value',
-      popupDesc: 'What your customers actually paid for your food: sales after discounts, plus GST. This is the starting point of your payout.',
+      popupDesc: 'What your customers paid for your food, after discounts, plus GST. The starting point of your payout.',
       mainValue: INR(netOrderVal),
       helpItems: [
-        { label: 'Net Order Value', value: INR(netOrderVal), text: 'Total amount customers paid: menu price after discounts, plus GST collected.' },
+        { label: 'Net Order Value', value: INR(netOrderVal), text: 'Total amount customers paid after discounts, plus GST collected.' },
         ...(overall.net_sales !== overall.customer_paid ? [
-          { label: 'Net Sales (without GST)', value: INR(overall.net_sales), text: 'Your food sales after discounts, without GST. This is what your earnings are measured against.' },
+          { label: 'Net Sales (without GST)', value: INR(overall.net_sales), text: 'Your food sales after discounts, without GST. Your earnings are measured against this number.' },
         ] : []),
       ],
     },
@@ -89,8 +89,8 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
       pct: overall.platform_fee_pct,
       popupTitle: z ? 'Zomato Charges' : 'Swiggy Charges',
       popupDesc: z
-        ? 'Commission, payment fees, and the GST charged on those fees. Here is how it breaks down.'
-        : 'Service fees and the GST charged on those fees. Here is how it breaks down.',
+        ? 'Commission, payment fees, and the GST charged on those fees.'
+        : 'Service fees and the GST charged on those fees.',
       mainValue: INR(platformTotal),
       helpItems: z ? [
         ...(n(overall.base_fee) > 0 ? [
@@ -103,7 +103,7 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
         ] : []),
         ...(!n(overall.base_fee) && !n(overall.payment_fee) ? [
           { label: 'Service Fee', value: INR(overall.platform_fee),
-            text: `Everything Zomato charged for its service: commission, long-distance and payment fees, after any fee discounts. ${overall.platform_fee_pct}% of revenue.` },
+            text: `Everything Zomato charged for its service (commission, long-distance, and payment fees, after any fee discounts). ${overall.platform_fee_pct}% of revenue.` },
         ] : [
           { label: 'Service Fee (Total)', value: INR(overall.platform_fee),
             text: `Commission + payment fees combined. ${overall.platform_fee_pct}% of revenue.` },
@@ -114,7 +114,7 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
         ] : []),
       ] : [
         { label: 'Swiggy Fees', value: INR(overall.platform_fee),
-          text: `Everything Swiggy charged for its service, such as commission and payment collection. ${overall.platform_fee_pct}% of revenue.` },
+          text: `Everything Swiggy charged for its service (commission and payment collection). ${overall.platform_fee_pct}% of revenue.` },
         ...(n(overall.platform_gst) > 0 ? [
           { label: 'GST on Swiggy Fees', value: INR(n(overall.platform_gst)),
             text: "The GST charged on Swiggy's fees." },
@@ -153,8 +153,8 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
       pct: overall.govt_tax_pct,
       popupTitle: 'Government Taxes',
       popupDesc: z
-        ? "Taxes taken out of your payout: customer GST, GST on Zomato's fee, and TDS."
-        : "Taxes taken out of your payout: customer GST, GST on Swiggy's fees, and TDS.",
+        ? "Taxes taken out of your payout, including customer GST, GST on Zomato's fee, and TDS."
+        : "Taxes taken out of your payout, including customer GST, GST on Swiggy's fees, and TDS.",
       mainValue: INR(govtTotal),
       helpItems: [
         { label: 'Govt Taxes (Total)', value: INR(govtTotal),
@@ -220,7 +220,7 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
       <SectionHeading
         title="Payout Breakdown"
         accentColor={accentColor}
-        tooltip="Where your revenue goes: tap any card for a detailed breakdown."
+        tooltip="Where your revenue goes. Tap any card for details."
       />
 
       {/* Card grid */}

@@ -25,7 +25,7 @@ export default function TopItems({ items, accentColor }: Props) {
       <SectionHeading
         title="Top 5 Items"
         accentColor={accentColor}
-        tooltip="Your five best-performing menu items by units sold this period. Bar width shows each item's share of total top-5 revenue."
+        tooltip="Five best-selling items by units sold. Bar width shows each item's share of total top-5 volume."
       />
 
       {/* Period switcher */}

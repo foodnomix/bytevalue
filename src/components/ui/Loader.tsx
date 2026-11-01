@@ -5,8 +5,7 @@ function createSignatureSound() {
   try {
     const ctx = new AudioContext()
 
-    // Phase 1: Quiet rising hum that builds tension during loading
-    // Starts immediately, crescendos over ~2.5s
+    // Buildup: rising hum 0-2.5s
     const t = ctx.currentTime
 
     const hum = ctx.createOscillator()

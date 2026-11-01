@@ -39,7 +39,7 @@ export default function PerformanceOverview({ periods, accentColor, platform }: 
       <SectionHeading
         title="Performance Overview"
         accentColor={accentColor}
-        tooltip="Tracks order and revenue activity for the selected period."
+        tooltip="Order and revenue numbers for the selected period."
       />
 
       {/* Period tabs */}
@@ -113,13 +113,13 @@ export default function PerformanceOverview({ periods, accentColor, platform }: 
             <CardExpander
               title="Total Discounts"
               description={z
-                ? 'Discounts you funded: promo codes, BOGO, freebie and Gold offers, and relisting discounts.'
+                ? 'Discounts you funded, including promo codes, BOGO, freebie, Gold, and relisting offers.'
                 : 'Your share of the discounts and offers given to customers.'}
               accentColor={accentColor}
               mainValue={INR(p.discounts)}
               helpItems={[
                 { label: 'Total Discounts', value: INR(p.discounts), text: z
-                  ? 'Discounts you funded: promo codes, BOGO, freebie and Gold offers, and relisting discounts.'
+                  ? 'Discounts you funded, including promo codes, BOGO, freebie, Gold, and relisting offers.'
                   : 'Your share of the discounts and offers given to customers.' },
                 { label: 'Discount %', value: `${((p.discounts / p.gross_subtotal) * 100).toFixed(1)}%`, text: 'Share of your gross subtotal that went to discounts.' },
               ]}
@@ -165,9 +165,9 @@ export default function PerformanceOverview({ periods, accentColor, platform }: 
             helpItems={[
               { label: 'Subtotal', value: INR(p.gross_subtotal), text: 'The menu value of everything you delivered, before any discounts.' },
               { label: 'Packaging', value: `+${INR(p.packaging)}`, text: 'Packaging charges your customers paid on delivered orders.' },
-              { label: 'Discounts', value: `-${INR(p.discounts)}`, text: z ? 'Discounts you funded: promo codes, BOGO, Gold offers, and relisting discounts.' : 'Your share of discounts and offers given to customers.' },
+              { label: 'Discounts', value: `-${INR(p.discounts)}`, text: z ? 'Discounts you funded, including promo codes, BOGO, Gold, and relisting offers.' : 'Your share of discounts and offers given to customers.' },
               { label: 'Customer GST', value: `+${INR(p.cust_gst)}`, text: z ? 'The 5% GST your customers paid on their food. Zomato pays it to the government for you.' : 'The GST your customers paid on their food. Swiggy pays it to the government for you.' },
-              { label: 'Customer Paid (Total)', value: INR(p.gross_subtotal + p.packaging - p.discounts + p.cust_gst), text: 'The final amount your customers paid: subtotal + packaging - discounts + GST.' },
+              { label: 'Customer Paid (Total)', value: INR(p.gross_subtotal + p.packaging - p.discounts + p.cust_gst), text: 'Subtotal + packaging - discounts + GST.' },
             ]}
           >
             <motion.div

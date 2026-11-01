@@ -198,12 +198,12 @@ function ReportArchiveModal({
 
                   {/* Swiggy dates */}
                   <span style={{ fontSize: 12, fontWeight: 600, color: swiggy ? '#475569' : '#d1d5db' }}>
-                    {swiggy ? formatDateRange(swiggy.period_start_date, swiggy.period_end_date) : '—'}
+                    {swiggy ? formatDateRange(swiggy.period_start_date, swiggy.period_end_date) : '-'}
                   </span>
 
                   {/* Zomato dates */}
                   <span style={{ fontSize: 12, fontWeight: 600, color: zomato ? '#475569' : '#d1d5db' }}>
-                    {zomato ? formatDateRange(zomato.period_start_date, zomato.period_end_date) : '—'}
+                    {zomato ? formatDateRange(zomato.period_start_date, zomato.period_end_date) : '-'}
                   </span>
                 </motion.button>
               )
@@ -533,7 +533,7 @@ export default function ReportPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <CardExpander
                   title="Top 5 Items"
-                  description="Your five best-selling menu items ranked by units sold during each period. The bar width shows each item's relative share compared to the top seller."
+                  description="Your five best-selling menu items ranked by units sold. Bar width shows each item's share relative to the top seller."
                   accentColor={color}
                 >
                   <TopItems items={topItems} accentColor={color} />
@@ -541,7 +541,7 @@ export default function ReportPage() {
 
                 <CardExpander
                   title="Unique Items Sold"
-                  description="The total number of distinct menu items that received at least one order during this period. A higher number means more of your menu is getting discovered by customers."
+                  description="How many distinct menu items got at least one order during this period."
                   accentColor={color}
                 >
                   <UniqueItems
