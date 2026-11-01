@@ -44,8 +44,12 @@ export default function AdminLoginPage() {
       alignItems: 'center',
       justifyContent: 'center',
       padding: 24,
-      background: '#0b1120',
+      backgroundColor: '#f5f4f2',
+      backgroundImage: 'radial-gradient(circle, rgba(15,23,42,0.07) 1px, transparent 1px)',
+      backgroundSize: '22px 22px',
     }}>
+      <img src="/bytevalue-logo.png" alt="ByteValue" style={{ height: 52, marginBottom: 28 }} />
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -53,18 +57,17 @@ export default function AdminLoginPage() {
         style={{
           width: '100%',
           maxWidth: 400,
-          background: '#1a2235',
+          background: '#fff',
           borderRadius: 20,
-          padding: '40px 32px',
-          border: '1px solid rgba(255,255,255,0.08)',
+          padding: '36px 32px 32px',
+          border: '1px solid #ede9e4',
         }}
       >
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <img src="/bytevalue-logo.png" alt="ByteValue" style={{ height: 48, marginBottom: 20 }} />
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: '#f1f5f9', margin: '0 0 6px' }}>
-            Admin panel
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: '0 0 6px' }}>
+            Admin login
           </h1>
-          <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>
+          <p style={{ fontSize: 13, color: '#94a3b8', margin: 0 }}>
             Sign in with your admin credentials
           </p>
         </div>
@@ -84,16 +87,16 @@ export default function AdminLoginPage() {
                 width: '100%',
                 padding: '12px 14px',
                 fontSize: 15,
-                border: '1.5px solid rgba(255,255,255,0.1)',
+                border: '1.5px solid #e2e8f0',
                 borderRadius: 12,
                 outline: 'none',
-                background: '#0f1729',
-                color: '#f1f5f9',
+                background: '#fafaf9',
+                color: '#0f172a',
                 transition: 'border-color 0.2s',
                 boxSizing: 'border-box',
               }}
-              onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.25)'}
-              onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+              onFocus={e => e.target.style.borderColor = '#94a3b8'}
+              onBlur={e => e.target.style.borderColor = '#e2e8f0'}
             />
           </div>
 
@@ -111,16 +114,16 @@ export default function AdminLoginPage() {
                 width: '100%',
                 padding: '12px 14px',
                 fontSize: 15,
-                border: '1.5px solid rgba(255,255,255,0.1)',
+                border: '1.5px solid #e2e8f0',
                 borderRadius: 12,
                 outline: 'none',
-                background: '#0f1729',
-                color: '#f1f5f9',
+                background: '#fafaf9',
+                color: '#0f172a',
                 transition: 'border-color 0.2s',
                 boxSizing: 'border-box',
               }}
-              onFocus={e => e.target.style.borderColor = 'rgba(255,255,255,0.25)'}
-              onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+              onFocus={e => e.target.style.borderColor = '#94a3b8'}
+              onBlur={e => e.target.style.borderColor = '#e2e8f0'}
             />
           </div>
 
@@ -128,7 +131,7 @@ export default function AdminLoginPage() {
             <motion.p
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              style={{ fontSize: 13, color: '#fca5a5', background: 'rgba(239,68,68,0.1)', padding: '10px 14px', borderRadius: 10, margin: 0, fontWeight: 600 }}
+              style={{ fontSize: 13, color: '#dc2626', background: '#fef2f2', padding: '10px 14px', borderRadius: 10, margin: 0, fontWeight: 600, lineHeight: 1.5 }}
             >
               {error}
             </motion.p>
@@ -141,8 +144,8 @@ export default function AdminLoginPage() {
               padding: '14px',
               fontSize: 15,
               fontWeight: 800,
-              color: '#0b1120',
-              background: loading ? '#475569' : '#f1f5f9',
+              color: '#fff',
+              background: loading ? '#94a3b8' : '#0b1120',
               border: 'none',
               borderRadius: 12,
               cursor: loading ? 'not-allowed' : 'pointer',
@@ -153,6 +156,10 @@ export default function AdminLoginPage() {
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
+
+        <p style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', marginTop: 28, fontWeight: 500 }}>
+          Powered by Foodnomix
+        </p>
       </motion.div>
     </div>
   )

@@ -43,24 +43,52 @@ export default function LoginPage() {
       alignItems: 'center',
       justifyContent: 'center',
       padding: 24,
-      backgroundColor: '#f5f4f2',
-      backgroundImage: 'radial-gradient(circle, rgba(15,23,42,0.07) 1px, transparent 1px)',
-      backgroundSize: '22px 22px',
+      background: 'linear-gradient(145deg, #0b1120 0%, #1a1025 40%, #2d1420 70%, #0b1120 100%)',
+      position: 'relative',
+      overflow: 'hidden',
     }}>
+      {/* Gradient orbs */}
+      <div style={{
+        position: 'absolute', top: '-20%', right: '-10%',
+        width: 500, height: 500, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(252,128,25,0.12) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', bottom: '-15%', left: '-10%',
+        width: 450, height: 450, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(239,68,68,0.10) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* Logo above card */}
+      <img src="/bytevalue-logo.png" alt="ByteValue" style={{ height: 52, marginBottom: 28, position: 'relative', zIndex: 1 }} />
+
       <div style={{
         width: '100%',
         maxWidth: 400,
-        background: '#fff',
+        background: 'rgba(26,34,53,0.85)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
         borderRadius: 20,
-        padding: '40px 32px',
-        border: '1px solid #ede9e4',
+        padding: '36px 32px 32px',
+        border: '1px solid rgba(255,255,255,0.08)',
+        boxShadow: '0 24px 64px rgba(0,0,0,0.4)',
+        position: 'relative',
+        zIndex: 1,
       }}>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <img src="/bytevalue-logo.png" alt="ByteValue" style={{ height: 48, marginBottom: 20 }} />
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', margin: '0 0 6px' }}>
+        {/* Accent strip */}
+        <div style={{
+          position: 'absolute', top: 0, left: 24, right: 24, height: 3,
+          background: 'linear-gradient(90deg, #FC8019, #ef4444)',
+          borderRadius: '0 0 3px 3px',
+        }} />
+
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: '#f1f5f9', margin: '0 0 6px' }}>
             Restaurant login
           </h1>
-          <p style={{ fontSize: 13, color: '#94a3b8', margin: 0 }}>
+          <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>
             Enter your registered phone number
           </p>
         </div>
@@ -74,23 +102,24 @@ export default function LoginPage() {
               type="tel"
               value={phone}
               onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
-              placeholder="Enter your 10-digit phone number"
+              placeholder="10-digit phone number"
               required
               maxLength={10}
               style={{
                 width: '100%',
                 padding: '12px 14px',
                 fontSize: 15,
-                border: '1.5px solid #e2e8f0',
+                border: '1.5px solid rgba(255,255,255,0.1)',
                 borderRadius: 12,
                 outline: 'none',
-                background: '#fafaf9',
+                background: 'rgba(15,23,41,0.6)',
+                color: '#f1f5f9',
                 transition: 'border-color 0.2s',
                 boxSizing: 'border-box',
                 letterSpacing: '0.05em',
               }}
-              onFocus={e => e.target.style.borderColor = '#94a3b8'}
-              onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+              onFocus={e => e.target.style.borderColor = 'rgba(252,128,25,0.5)'}
+              onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
             />
           </div>
 
@@ -103,28 +132,29 @@ export default function LoginPage() {
               inputMode="numeric"
               value={pin}
               onChange={e => setPin(e.target.value.replace(/\D/g, ''))}
-              placeholder="Enter your 6-digit PIN"
+              placeholder="6-digit PIN"
               required
               maxLength={6}
               style={{
                 width: '100%',
                 padding: '12px 14px',
                 fontSize: 15,
-                border: '1.5px solid #e2e8f0',
+                border: '1.5px solid rgba(255,255,255,0.1)',
                 borderRadius: 12,
                 outline: 'none',
-                background: '#fafaf9',
+                background: 'rgba(15,23,41,0.6)',
+                color: '#f1f5f9',
                 transition: 'border-color 0.2s',
                 boxSizing: 'border-box',
                 letterSpacing: '0.25em',
               }}
-              onFocus={e => e.target.style.borderColor = '#94a3b8'}
-              onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+              onFocus={e => e.target.style.borderColor = 'rgba(252,128,25,0.5)'}
+              onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
             />
           </div>
 
           {error && (
-            <p style={{ fontSize: 13, color: '#dc2626', background: '#fef2f2', padding: '10px 14px', borderRadius: 10, margin: 0, fontWeight: 600, lineHeight: 1.5 }}>
+            <p style={{ fontSize: 13, color: '#fca5a5', background: 'rgba(239,68,68,0.12)', padding: '10px 14px', borderRadius: 10, margin: 0, fontWeight: 600, lineHeight: 1.5 }}>
               {error}
             </p>
           )}
@@ -137,19 +167,20 @@ export default function LoginPage() {
               fontSize: 15,
               fontWeight: 800,
               color: '#fff',
-              background: loading ? '#94a3b8' : '#0b1120',
+              background: loading ? '#475569' : 'linear-gradient(135deg, #FC8019, #ef4444)',
               border: 'none',
               borderRadius: 12,
               cursor: loading ? 'not-allowed' : 'pointer',
               marginTop: 4,
-              transition: 'background 0.2s',
+              transition: 'opacity 0.2s',
+              opacity: loading || !phone || !pin ? 0.5 : 1,
             }}
           >
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
 
-        <p style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', marginTop: 28, fontWeight: 500 }}>
+        <p style={{ fontSize: 11, color: '#475569', textAlign: 'center', marginTop: 24, fontWeight: 500 }}>
           Powered by Foodnomix
         </p>
       </div>
