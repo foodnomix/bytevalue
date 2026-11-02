@@ -8,6 +8,7 @@ interface Props {
 }
 
 export default function AnimatedNumber({ value, format, duration = 900, className }: Props) {
+  const safeValue = (value ?? 0) || 0
   const [display, setDisplay] = useState(0)
   const startRef = useRef(0)
   const startTimeRef = useRef<number | null>(null)
@@ -22,13 +23,14 @@ export default function AnimatedNumber({ value, format, duration = 900, classNam
       const elapsed = ts - startTimeRef.current
       const progress = Math.min(elapsed / duration, 1)
       const eased = 1 - Math.pow(1 - progress, 3) // ease-out cubic
-      setDisplay(startRef.current + (value - startRef.current) * eased)
+      const next = startRef.current + (safeValue - startRef.current) * eased
+      setDisplay(Number.isFinite(next) ? next : 0)
       if (progress < 1) rafRef.current = requestAnimationFrame(step)
     }
 
     rafRef.current = requestAnimationFrame(step)
     return () => cancelAnimationFrame(rafRef.current)
-  }, [value, duration])
+  }, [safeValue, duration])
 
   const str = format ? format(display) : display.toFixed(0)
   return <span className={className}>{str}</span>

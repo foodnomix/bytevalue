@@ -33,26 +33,26 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
   if (!overall) return null
 
   const z = platform === 'zomato'
-  const retainedPct = overall.retained_pct ?? overall.net_payout_pct ?? 0
+  const retainedPct = n(overall.retained_pct) || n(overall.net_payout_pct)
 
   const donutSegments = [
-    { value: retainedPct ?? 0,              color: '#10b981' },
-    { value: overall.platform_fee_pct ?? 0, color: 'rgba(255,255,255,0.18)' },
-    { value: overall.govt_tax_pct ?? 0,     color: 'rgba(255,255,255,0.10)' },
-    { value: overall.ads_spend_pct ?? 0,    color: 'rgba(255,255,255,0.06)' },
+    { value: retainedPct,                    color: '#10b981' },
+    { value: n(overall.platform_fee_pct),    color: 'rgba(255,255,255,0.18)' },
+    { value: n(overall.govt_tax_pct),        color: 'rgba(255,255,255,0.10)' },
+    { value: n(overall.ads_spend_pct),       color: 'rgba(255,255,255,0.06)' },
   ]
 
   // Card 1: Net Order Value
-  const netOrderVal = overall.net_sales ?? overall.customer_paid
+  const netOrderVal = n(overall.net_sales) || n(overall.customer_paid)
 
   // Card 2: Platform Charges (fees + platform GST combined)
-  const platformTotal = overall.platform_fee + n(overall.platform_gst)
+  const platformTotal = n(overall.platform_fee) + n(overall.platform_gst)
 
   // Card 3: Ads
-  const adsVal = overall.ads_spend
+  const adsVal = n(overall.ads_spend)
 
   // Card 4: Govt Taxes (already includes TDS)
-  const govtTotal = overall.govt_tax
+  const govtTotal = n(overall.govt_tax)
 
   // Card 5: Cancellations (Zomato: other_deductions + refunds; Swiggy: complaints)
   const cancellationVal = z
@@ -60,12 +60,12 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
     : n(overall.complaints)
 
   // Govt tax breakdown
-  const customerGst = overall.govt_tax - n(overall.tds)
+  const customerGst = n(overall.govt_tax) - n(overall.tds)
   const restaurantGst = n(overall.platform_gst)
 
   // Customer point of view: what % of customer's spend reaches the restaurant
-  const customerPovPct = overall.customer_paid
-    ? Math.round((overall.net_payout / overall.customer_paid) * 1000) / 10
+  const customerPovPct = n(overall.customer_paid)
+    ? Math.round((n(overall.net_payout) / n(overall.customer_paid)) * 1000) / 10
     : 0
 
   const cards: CardDef[] = [
@@ -82,8 +82,8 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
       mainValue: INR(netOrderVal),
       helpItems: [
         { label: 'Net Order Value', value: INR(netOrderVal), text: 'Total amount customers paid after discounts, plus GST collected.' },
-        ...(overall.net_sales !== overall.customer_paid ? [
-          { label: 'Net Sales (without GST)', value: INR(overall.net_sales), text: 'Your food sales after discounts, without GST. Your earnings are measured against this number.' },
+        ...(n(overall.net_sales) !== n(overall.customer_paid) ? [
+          { label: 'Net Sales (without GST)', value: INR(n(overall.net_sales)), text: 'Your food sales after discounts, without GST. Your earnings are measured against this number.' },
         ] : []),
       ],
     },
@@ -94,7 +94,7 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
       color: '#f43f5e',
       icon: '↓',
       subtitle: z ? 'Commission, fees, and GST on fees' : 'Fees and GST on fees',
-      pct: overall.platform_fee_pct,
+      pct: n(overall.platform_fee_pct),
       popupTitle: z ? 'Zomato Charges' : 'Swiggy Charges',
       popupDesc: z
         ? 'Commission, payment fees, and the GST charged on those fees.'
@@ -103,26 +103,26 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
       helpItems: z ? [
         ...(n(overall.base_fee) > 0 ? [
           { label: 'Base Commission', value: INR(n(overall.base_fee)),
-            text: `Zomato's commission at your agreed rate.${overall.base_fee_pct ? ` ${overall.base_fee_pct}% commission rate.` : ''}${n(overall.commissionable_value) > 0 ? ` Calculated on ${INR(n(overall.commissionable_value))} commissionable value.` : ''}` },
+            text: `Zomato's commission at your agreed rate.${n(overall.base_fee_pct) ? ` ${n(overall.base_fee_pct)}% commission rate.` : ''}${n(overall.commissionable_value) > 0 ? ` Calculated on ${INR(n(overall.commissionable_value))} commissionable value.` : ''}` },
         ] : []),
         ...(n(overall.payment_fee) > 0 ? [
           { label: 'Payment Fee', value: INR(n(overall.payment_fee)),
-            text: `What Zomato charges for collecting online payments from your customers.${overall.payment_fee_pct ? ` ${overall.payment_fee_pct}% of customer payment.` : ''}` },
+            text: `What Zomato charges for collecting online payments from your customers.${n(overall.payment_fee_pct) ? ` ${n(overall.payment_fee_pct)}% of customer payment.` : ''}` },
         ] : []),
         ...(!n(overall.base_fee) && !n(overall.payment_fee) ? [
-          { label: 'Service Fee', value: INR(overall.platform_fee),
-            text: `Everything Zomato charged for its service (commission, long-distance, and payment fees, after any fee discounts). ${overall.platform_fee_pct}% of revenue.` },
+          { label: 'Service Fee', value: INR(n(overall.platform_fee)),
+            text: `Everything Zomato charged for its service (commission, long-distance, and payment fees, after any fee discounts). ${n(overall.platform_fee_pct)}% of revenue.` },
         ] : [
-          { label: 'Service Fee (Total)', value: INR(overall.platform_fee),
-            text: `Commission + payment fees combined. ${overall.platform_fee_pct}% of revenue.` },
+          { label: 'Service Fee (Total)', value: INR(n(overall.platform_fee)),
+            text: `Commission + payment fees combined. ${n(overall.platform_fee_pct)}% of revenue.` },
         ]),
         ...(n(overall.platform_gst) > 0 ? [
           { label: 'GST on Zomato Fees', value: INR(n(overall.platform_gst)),
             text: "The 18% GST charged on Zomato's service fee." },
         ] : []),
       ] : [
-        { label: 'Swiggy Fees', value: INR(overall.platform_fee),
-          text: `Everything Swiggy charged for its service (commission and payment collection). ${overall.platform_fee_pct}% of revenue.` },
+        { label: 'Swiggy Fees', value: INR(n(overall.platform_fee)),
+          text: `Everything Swiggy charged for its service (commission and payment collection). ${n(overall.platform_fee_pct)}% of revenue.` },
         ...(n(overall.platform_gst) > 0 ? [
           { label: 'GST on Swiggy Fees', value: INR(n(overall.platform_gst)),
             text: "The GST charged on Swiggy's fees." },
@@ -136,7 +136,7 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
       color: '#8b5cf6',
       icon: '↓',
       subtitle: z ? 'Spent on Zomato ads' : 'Spent on Swiggy ads',
-      pct: overall.ads_spend_pct,
+      pct: n(overall.ads_spend_pct),
       popupTitle: 'Ads',
       popupDesc: z
         ? 'Your total spend on Zomato ads to bring in more orders.'
@@ -147,7 +147,7 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
           text: z
             ? 'Amount spent on Zomato ads this period.'
             : 'Amount spent on Swiggy ads and other charges this period.' },
-        { label: 'Ads as % of Revenue', value: `${overall.ads_spend_pct ?? 0}%`,
+        { label: 'Ads as % of Revenue', value: `${n(overall.ads_spend_pct)}%`,
           text: 'Your ad spend as a share of what customers paid.' },
       ],
     },
@@ -158,13 +158,13 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
       color: '#f59e0b',
       icon: '↓',
       subtitle: 'Customer GST, restaurant GST, TDS',
-      pct: overall.govt_tax_pct,
+      pct: n(overall.govt_tax_pct),
       popupTitle: 'Government Taxes',
       popupDesc: 'All taxes deducted from your payout, split by who they apply to.',
       mainValue: INR(govtTotal),
       helpItems: [
         { label: 'Govt Taxes (Total)', value: INR(govtTotal),
-          text: `${overall.govt_tax_pct ?? 0}% of revenue.` },
+          text: `${n(overall.govt_tax_pct)}% of revenue.` },
         ...(customerGst > 0 ? [
           { label: 'GST Paid by Customer', value: INR(customerGst),
             text: 'The 5% GST your customers paid on their food. The platform collects this and deposits it to the government.' },
@@ -319,7 +319,7 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
             Your Bank Payout
           </p>
           <div style={{ fontSize: 'clamp(1.7rem, 5vw, 2.8rem)', fontWeight: 900, color: '#fff', lineHeight: 1.1, overflowWrap: 'break-word' }}>
-            <AnimatedNumber value={overall.net_payout} format={INR} duration={1100} />
+            <AnimatedNumber value={n(overall.net_payout)} format={INR} duration={1100} />
           </div>
           <p style={{ fontSize: 11, fontWeight: 500, color: '#cbd5e1', marginTop: 8, lineHeight: 1.5 }}>
             {z

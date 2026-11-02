@@ -13,6 +13,8 @@ interface Props {
   platform: Platform
 }
 
+const n = (v: number | null | undefined) => v ?? 0
+
 const TAB_STYLE = (active: boolean, color: string) => ({
   padding: '7px 16px',
   borderRadius: 10,
@@ -68,13 +70,13 @@ export default function PerformanceOverview({ periods, accentColor, platform }: 
                 ? 'Every order placed with you on Zomato this month, delivered or cancelled.'
                 : 'Every order placed with you on Swiggy in this period, delivered or cancelled.'}
               accentColor={accentColor}
-              mainValue={String(p.total_orders)}
+              mainValue={String(n(p.total_orders))}
               helpItems={[
-                { label: 'Total Orders', value: String(p.total_orders), text: z
+                { label: 'Total Orders', value: String(n(p.total_orders)), text: z
                   ? 'Every order placed with you on Zomato this month, delivered or cancelled.'
                   : 'Every order placed with you on Swiggy in this period, delivered or cancelled.' },
-                { label: 'Delivered', value: String(p.delivered), text: 'Orders that reached the customer. All sales figures are based on these.' },
-                ...(p.cancelled > 0 ? [{ label: 'Cancelled', value: String(p.cancelled), text: "Orders cancelled or rejected before delivery. They don't count towards your sales." }] : []),
+                { label: 'Delivered', value: String(n(p.delivered)), text: 'Orders that reached the customer. All sales figures are based on these.' },
+                ...(n(p.cancelled) > 0 ? [{ label: 'Cancelled', value: String(n(p.cancelled)), text: "Orders cancelled or rejected before delivery. They don't count towards your sales." }] : []),
               ]}
             >
               <StatCard
@@ -82,11 +84,11 @@ export default function PerformanceOverview({ periods, accentColor, platform }: 
                 labelColor={accentColor}
                 accentColor={accentColor}
                 stripColor={accentColor}
-                value={<AnimatedNumber value={p.total_orders} />}
+                value={<AnimatedNumber value={n(p.total_orders)} />}
                 delay={0}
                 sub={
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, background: '#dbeafe', color: '#1d4ed8', borderRadius: 7, padding: '3px 8px' }}>{p.delivered} Delivered</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, background: '#dbeafe', color: '#1d4ed8', borderRadius: 7, padding: '3px 8px' }}>{n(p.delivered)} Delivered</span>
                   </div>
                 }
               />
@@ -96,15 +98,15 @@ export default function PerformanceOverview({ periods, accentColor, platform }: 
               title="Gross Subtotal"
               description="Total menu value of all delivered orders, before discounts or taxes."
               accentColor={accentColor}
-              mainValue={INR(p.gross_subtotal)}
+              mainValue={INR(n(p.gross_subtotal))}
               helpItems={[
-                { label: 'Gross Subtotal', value: INR(p.gross_subtotal), text: 'Total menu value of all delivered orders, before discounts or taxes.' },
+                { label: 'Gross Subtotal', value: INR(n(p.gross_subtotal)), text: 'Total menu value of all delivered orders, before discounts or taxes.' },
               ]}
             >
               <StatCard
                 label="Gross Subtotal"
                 accentColor={accentColor}
-                value={<AnimatedNumber value={p.gross_subtotal} format={INR} />}
+                value={<AnimatedNumber value={n(p.gross_subtotal)} format={INR} />}
                 delay={0.05}
               />
             </CardExpander>
@@ -115,22 +117,22 @@ export default function PerformanceOverview({ periods, accentColor, platform }: 
                 ? 'Discounts you funded, including promo codes, BOGO, freebie, Gold, and relisting offers.'
                 : 'Your share of the discounts and offers given to customers.'}
               accentColor={accentColor}
-              mainValue={INR(p.discounts)}
+              mainValue={INR(n(p.discounts))}
               helpItems={[
-                { label: 'Total Discounts', value: INR(p.discounts), text: z
+                { label: 'Total Discounts', value: INR(n(p.discounts)), text: z
                   ? 'Discounts you funded, including promo codes, BOGO, freebie, Gold, and relisting offers.'
                   : 'Your share of the discounts and offers given to customers.' },
-                { label: 'Discount %', value: `${(p.gross_subtotal ? (p.discounts / p.gross_subtotal) * 100 : 0).toFixed(1)}%`, text: 'Share of your gross subtotal that went to discounts.' },
+                { label: 'Discount %', value: `${(n(p.gross_subtotal) ? (n(p.discounts) / n(p.gross_subtotal)) * 100 : 0).toFixed(1)}%`, text: 'Share of your gross subtotal that went to discounts.' },
               ]}
             >
               <StatCard
                 label="Total Discounts"
                 accentColor={accentColor}
                 stripColor="#f43f5e"
-                value={<AnimatedNumber value={p.discounts} format={INR} />}
+                value={<AnimatedNumber value={n(p.discounts)} format={INR} />}
                 delay={0.1}
                 sub={
-                  <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', margin: 0 }}>{(p.gross_subtotal ? (p.discounts / p.gross_subtotal) * 100 : 0).toFixed(1)}% of subtotal</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', margin: 0 }}>{(n(p.gross_subtotal) ? (n(p.discounts) / n(p.gross_subtotal)) * 100 : 0).toFixed(1)}% of subtotal</p>
                 }
               />
             </CardExpander>
@@ -139,9 +141,9 @@ export default function PerformanceOverview({ periods, accentColor, platform }: 
               title="Avg Order Value"
               description="What a customer paid you on an average delivered order, including GST."
               accentColor={accentColor}
-              mainValue={INR(Math.round(p.aov))}
+              mainValue={INR(Math.round(n(p.aov)))}
               helpItems={[
-                { label: 'Avg Order Value', value: INR(Math.round(p.aov)), text: 'What a customer paid you on an average delivered order, including GST.' },
+                { label: 'Avg Order Value', value: INR(Math.round(n(p.aov))), text: 'What a customer paid you on an average delivered order, including GST.' },
               ]}
             >
               <StatCard
@@ -149,33 +151,33 @@ export default function PerformanceOverview({ periods, accentColor, platform }: 
                 labelColor="#059669"
                 accentColor={accentColor}
                 stripColor="#10b981"
-                value={<AnimatedNumber value={p.aov} format={v => INR(Math.round(v))} />}
+                value={<AnimatedNumber value={n(p.aov)} format={v => INR(Math.round(v))} />}
                 delay={0.15}
               />
             </CardExpander>
 
             <CardExpander
               title="Cancellations"
-              description={p.cancelled > 0
-                ? `${p.cancelled} order${p.cancelled !== 1 ? 's' : ''} cancelled or rejected before delivery. These do not count towards your sales.`
+              description={n(p.cancelled) > 0
+                ? `${n(p.cancelled)} order${n(p.cancelled) !== 1 ? 's' : ''} cancelled or rejected before delivery. These do not count towards your sales.`
                 : 'No orders were cancelled in this period.'}
               accentColor={accentColor}
-              mainValue={String(p.cancelled)}
+              mainValue={String(n(p.cancelled))}
               helpItems={[
-                { label: 'Cancelled Orders', value: String(p.cancelled), text: "Orders cancelled or rejected before delivery. They don't affect your sales figures." },
-                ...(p.total_orders > 0 ? [{ label: 'Cancellation Rate', value: `${(p.total_orders ? (p.cancelled / p.total_orders) * 100 : 0).toFixed(1)}%`, text: 'Cancelled orders as a share of total orders placed.' }] : []),
+                { label: 'Cancelled Orders', value: String(n(p.cancelled)), text: "Orders cancelled or rejected before delivery. They don't affect your sales figures." },
+                ...(n(p.total_orders) > 0 ? [{ label: 'Cancellation Rate', value: `${(n(p.total_orders) ? (n(p.cancelled) / n(p.total_orders)) * 100 : 0).toFixed(1)}%`, text: 'Cancelled orders as a share of total orders placed.' }] : []),
               ]}
             >
               <StatCard
                 label="Cancellations"
                 accentColor={accentColor}
                 stripColor="#ef4444"
-                value={<AnimatedNumber value={p.cancelled} />}
+                value={<AnimatedNumber value={n(p.cancelled)} />}
                 delay={0.2}
                 sub={
-                  p.total_orders > 0
-                    ? <p style={{ fontSize: 10, fontWeight: 700, color: p.cancelled > 0 ? '#ef4444' : '#10b981', margin: 0 }}>
-                        {(p.cancelled / p.total_orders * 100).toFixed(1)}% cancellation rate
+                  n(p.total_orders) > 0
+                    ? <p style={{ fontSize: 10, fontWeight: 700, color: n(p.cancelled) > 0 ? '#ef4444' : '#10b981', margin: 0 }}>
+                        {(n(p.cancelled) / n(p.total_orders) * 100).toFixed(1)}% cancellation rate
                       </p>
                     : undefined
                 }
@@ -188,13 +190,13 @@ export default function PerformanceOverview({ periods, accentColor, platform }: 
             title="Revenue Breakdown"
             description="How your gross subtotal becomes the net amount customers paid."
             accentColor={accentColor}
-            mainValue={INR(p.gross_subtotal + p.packaging - p.discounts + p.cust_gst)}
+            mainValue={INR(n(p.gross_subtotal) + n(p.packaging) - n(p.discounts) + n(p.cust_gst))}
             helpItems={[
-              { label: 'Subtotal', value: INR(p.gross_subtotal), text: 'The menu value of everything you delivered, before any discounts.' },
-              { label: 'Packaging', value: `+${INR(p.packaging)}`, text: 'Packaging charges your customers paid on delivered orders.' },
-              { label: 'Discounts', value: `-${INR(p.discounts)}`, text: z ? 'Discounts you funded, including promo codes, BOGO, Gold, and relisting offers.' : 'Your share of discounts and offers given to customers.' },
-              { label: 'Customer GST', value: `+${INR(p.cust_gst)}`, text: z ? 'The 5% GST your customers paid on their food. Zomato pays it to the government for you.' : 'The GST your customers paid on their food. Swiggy pays it to the government for you.' },
-              { label: 'Customer Paid (Total)', value: INR(p.gross_subtotal + p.packaging - p.discounts + p.cust_gst), text: 'Subtotal + packaging - discounts + GST.' },
+              { label: 'Subtotal', value: INR(n(p.gross_subtotal)), text: 'The menu value of everything you delivered, before any discounts.' },
+              { label: 'Packaging', value: `+${INR(n(p.packaging))}`, text: 'Packaging charges your customers paid on delivered orders.' },
+              { label: 'Discounts', value: `-${INR(n(p.discounts))}`, text: z ? 'Discounts you funded, including promo codes, BOGO, Gold, and relisting offers.' : 'Your share of discounts and offers given to customers.' },
+              { label: 'Customer GST', value: `+${INR(n(p.cust_gst))}`, text: z ? 'The 5% GST your customers paid on their food. Zomato pays it to the government for you.' : 'The GST your customers paid on their food. Swiggy pays it to the government for you.' },
+              { label: 'Customer Paid (Total)', value: INR(n(p.gross_subtotal) + n(p.packaging) - n(p.discounts) + n(p.cust_gst)), text: 'Subtotal + packaging - discounts + GST.' },
             ]}
           >
             <motion.div
@@ -209,10 +211,10 @@ export default function PerformanceOverview({ periods, accentColor, platform }: 
 
               <div style={{ padding: '4px 0' }}>
                 {[
-                  { label: 'Subtotal',     val: p.gross_subtotal, sign: null,  valColor: '#1e293b' },
-                  { label: 'Packaging',    val: p.packaging,      sign: '+',   valColor: '#1e293b' },
-                  { label: 'Discounts',    val: p.discounts,      sign: '−',   valColor: '#dc2626', negative: true },
-                  { label: 'Customer GST', val: p.cust_gst,       sign: '+',   valColor: '#2563eb' },
+                  { label: 'Subtotal',     val: n(p.gross_subtotal), sign: null,  valColor: '#1e293b' },
+                  { label: 'Packaging',    val: n(p.packaging),      sign: '+',   valColor: '#1e293b' },
+                  { label: 'Discounts',    val: n(p.discounts),      sign: '−',   valColor: '#dc2626', negative: true },
+                  { label: 'Customer GST', val: n(p.cust_gst),       sign: '+',   valColor: '#2563eb' },
                 ].map((row, i) => (
                   <div
                     key={i}
@@ -261,7 +263,7 @@ export default function PerformanceOverview({ periods, accentColor, platform }: 
                   <span style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>Customer Paid</span>
                 </div>
                 <span style={{ fontSize: 20, fontWeight: 900, color: accentColor, letterSpacing: '-0.02em' }}>
-                  <AnimatedNumber value={p.gross_subtotal + p.packaging - p.discounts + p.cust_gst} format={INR} />
+                  <AnimatedNumber value={n(p.gross_subtotal) + n(p.packaging) - n(p.discounts) + n(p.cust_gst)} format={INR} />
                 </span>
               </div>
             </motion.div>
