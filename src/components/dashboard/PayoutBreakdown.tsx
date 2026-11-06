@@ -75,17 +75,17 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
       value: netOrderVal,
       color: '#10b981',
       icon: '↑',
-      subtitle: z ? 'Revenue before restaurant GST' : 'What customers paid for your food',
+      subtitle: z ? 'Revenue before GST' : 'What customers paid for your food',
       pct: null,
       popupTitle: z ? 'Commissionable Value' : 'Net Order Value',
       popupDesc: z
-        ? 'The revenue Zomato uses to calculate commission. This does not include the GST charged on Zomato fees (restaurant GST).'
+        ? 'The revenue Zomato uses to calculate commission. This does not include the GST that Zomato pays to the government on your behalf.'
         : 'What your customers paid for your food, after discounts, plus GST. The starting point of your payout.',
       mainValue: INR(netOrderVal),
       helpItems: z ? [
-        { label: 'Commissionable Value', value: INR(netOrderVal), text: 'The base amount Zomato calculates its commission on. This does not include the GST charged on Zomato fees.' },
-        { label: 'Subtotal (with GST)', value: INR(netOrderVal + restaurantGst), text: 'Commissionable value plus the restaurant GST on Zomato fees.' },
-        { label: 'Restaurant GST', value: INR(restaurantGst), text: 'The 18% GST charged on Zomato fees. You can claim this as input tax credit.' },
+        { label: 'Commissionable Value', value: INR(netOrderVal), text: 'The base amount Zomato calculates its commission on.' },
+        { label: 'Subtotal (with GST)', value: INR(netOrderVal + customerGst), text: 'Commissionable value plus the GST that Zomato pays on your behalf.' },
+        { label: 'GST (paid by Zomato)', value: INR(customerGst), text: 'GST on food that Zomato collects from customers and pays to the government on your behalf.' },
       ] : [
         { label: 'Net Order Value', value: INR(netOrderVal), text: 'Total amount customers paid after discounts, plus GST collected.' },
         ...(n(overall.net_sales) !== n(overall.customer_paid) ? [
