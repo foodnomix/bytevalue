@@ -60,7 +60,7 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
     : n(overall.complaints)
 
   // Govt tax breakdown
-  const customerGst = n(overall.govt_tax) - n(overall.tds)
+  const customerGst = n(overall.govt_tax) - n(overall.tds) - n(overall.platform_gst)
   const restaurantGst = n(overall.platform_gst)
 
   // Customer point of view: what % of customer's spend reaches the restaurant
