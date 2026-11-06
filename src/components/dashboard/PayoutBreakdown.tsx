@@ -71,16 +71,22 @@ export default function PayoutBreakdown({ periods, accentColor, platform }: Prop
   const cards: CardDef[] = [
     {
       key: 'net_order_value',
-      label: 'Net Order Value',
+      label: z ? 'Commissionable Value' : 'Net Order Value',
       value: netOrderVal,
       color: '#10b981',
       icon: '↑',
-      subtitle: 'What customers paid for your food',
+      subtitle: z ? 'Revenue before food GST' : 'What customers paid for your food',
       pct: null,
-      popupTitle: 'Net Order Value',
-      popupDesc: 'What your customers paid for your food, after discounts, plus GST. The starting point of your payout.',
+      popupTitle: z ? 'Commissionable Value' : 'Net Order Value',
+      popupDesc: z
+        ? 'The revenue Zomato uses to calculate commission. This does not include the GST customers pay on food.'
+        : 'What your customers paid for your food, after discounts, plus GST. The starting point of your payout.',
       mainValue: INR(netOrderVal),
-      helpItems: [
+      helpItems: z ? [
+        { label: 'Commissionable Value', value: INR(netOrderVal), text: 'The base amount Zomato calculates its commission on. This does not include the GST customers pay on food.' },
+        { label: 'Subtotal (with GST)', value: INR(netOrderVal + customerGst), text: 'Commissionable value plus the food GST paid by customers.' },
+        { label: 'Food GST', value: INR(customerGst), text: 'GST customers pay on food. Zomato collects this and deposits it to the government.' },
+      ] : [
         { label: 'Net Order Value', value: INR(netOrderVal), text: 'Total amount customers paid after discounts, plus GST collected.' },
         ...(n(overall.net_sales) !== n(overall.customer_paid) ? [
           { label: 'Net Sales (without GST)', value: INR(n(overall.net_sales)), text: 'Your food sales after discounts, without GST. Your earnings are measured against this number.' },
