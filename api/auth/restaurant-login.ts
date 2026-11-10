@@ -178,6 +178,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .eq('phone', trimmed)
     }
 
+    await supabase.from('activity_log').insert({
+      action: 'restaurant_login',
+      entity_type: 'restaurant',
+      entity_id: restaurant.id,
+      details: JSON.stringify({ restaurant_name: restaurant.name, phone: trimmed }),
+    }).then(() => {})
+
     return res.status(200).json({
       token: 'phone-auth',
       restaurant: {

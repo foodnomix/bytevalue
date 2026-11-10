@@ -101,6 +101,8 @@ export default function AdminDashboard() {
 
   const role = user?.type === 'admin' ? user.role : 'view_only'
   const isDeveloper = role === 'developer'
+  const isSuperAdmin = role === 'super_admin'
+  const canViewActivity = isDeveloper || isSuperAdmin
   const canEdit = role === 'developer' || role === 'super_admin'
   const canDelete = role === 'developer'
 
@@ -115,7 +117,7 @@ export default function AdminDashboard() {
         fetch('/api/admin/data'),
         fetch('/api/admin/users'),
       ]
-      if (isDeveloper) fetches.push(fetch('/api/admin/activity-log?limit=200'))
+      if (canViewActivity) fetches.push(fetch('/api/admin/activity-log?limit=200'))
 
       const responses = await Promise.all(fetches)
       const data = await responses[0].json()
@@ -132,7 +134,7 @@ export default function AdminDashboard() {
         totalReports: reps.length,
       })
 
-      if (isDeveloper && responses[2]) {
+      if (canViewActivity && responses[2]) {
         const logData = await responses[2].json()
         setActivityLogs(logData.logs || [])
       }
@@ -268,7 +270,7 @@ export default function AdminDashboard() {
   const restHeaders = ['Name', 'City', 'Phone', 'Phone 2', 'Email', 'Status', 'Platforms']
   if (hasActions) restHeaders.push('Actions')
 
-  const tabs = isDeveloper
+  const tabs = canViewActivity
     ? (['restaurants', 'reports', 'users', 'activity'] as const)
     : (['restaurants', 'reports', 'users'] as const)
 
@@ -534,7 +536,7 @@ export default function AdminDashboard() {
           </>
         )}
         {/* ===== ACTIVITY LOG ===== */}
-        {activeTab === 'activity' && isDeveloper && (
+        {activeTab === 'activity' && canViewActivity && (
           <div style={{ background: '#1a2235', borderRadius: 16, border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
             <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 10 }}>
               <Clock size={16} color="#3b82f6" />
@@ -561,12 +563,12 @@ export default function AdminDashboard() {
                     return (
                       <tr key={log.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                         <td style={{ padding: '12px 16px', fontSize: 12, color: '#64748b', whiteSpace: 'nowrap' }}>
-                          {new Date(log.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}{' '}
-                          {new Date(log.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(log.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}{' '}
+                          {new Date(log.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
                         </td>
                         <td style={{ padding: '12px 16px' }}>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9' }}>{String(d.admin_name || 'Unknown')}</div>
-                          <div style={{ fontSize: 11, color: '#64748b' }}>{String(d.admin_email || '')}</div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9' }}>{String(d.admin_name || d.restaurant_name || 'Unknown')}</div>
+                          <div style={{ fontSize: 11, color: '#64748b' }}>{String(d.admin_email || (d.phone ? `Phone: ${d.phone}` : ''))}</div>
                         </td>
                         <td style={{ padding: '12px 16px' }}>
                           <ActionBadge action={log.action} />
@@ -711,7 +713,8 @@ export default function AdminDashboard() {
 }
 
 const ACTION_LABELS: Record<string, { label: string; bg: string; fg: string }> = {
-  login: { label: 'Logged in', bg: 'rgba(59,130,246,0.15)', fg: '#93c5fd' },
+  login: { label: 'Admin login', bg: 'rgba(59,130,246,0.15)', fg: '#93c5fd' },
+  restaurant_login: { label: 'Restaurant login', bg: 'rgba(16,185,129,0.15)', fg: '#6ee7b7' },
   update_restaurant: { label: 'Updated restaurant', bg: 'rgba(245,158,11,0.15)', fg: '#fbbf24' },
   delete_restaurant: { label: 'Deleted restaurant', bg: 'rgba(239,68,68,0.15)', fg: '#fca5a5' },
   create_user: { label: 'Created user', bg: 'rgba(16,185,129,0.15)', fg: '#6ee7b7' },
@@ -737,6 +740,7 @@ function parseLogDetails(raw: string | null): Record<string, unknown> {
 
 function formatLogDetails(action: string, d: Record<string, unknown>): string {
   if (action === 'login') return `Role: ${d.role || 'unknown'}`
+  if (action === 'restaurant_login') return d.phone ? `Phone: ${d.phone}` : ''
   if (action === 'update_restaurant' || action === 'update_user') {
     const fields = d.fields_updated
     if (Array.isArray(fields)) return `Changed: ${fields.join(', ')}`
