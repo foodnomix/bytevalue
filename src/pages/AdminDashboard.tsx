@@ -563,8 +563,8 @@ export default function AdminDashboard() {
                     return (
                       <tr key={log.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                         <td style={{ padding: '12px 16px', fontSize: 12, color: '#64748b', whiteSpace: 'nowrap' }}>
-                          {new Date(log.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}{' '}
-                          {new Date(log.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                          {new Date(log.created_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' })}{' '}
+                          {new Date(log.created_at).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true })}
                         </td>
                         <td style={{ padding: '12px 16px' }}>
                           <div style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9' }}>{String(d.admin_name || d.restaurant_name || 'Unknown')}</div>
@@ -738,9 +738,16 @@ function parseLogDetails(raw: string | null): Record<string, unknown> {
   try { return JSON.parse(raw) } catch { return {} }
 }
 
+const MONTH_NAMES_SHORT = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
 function formatLogDetails(action: string, d: Record<string, unknown>): string {
   if (action === 'login') return `Role: ${d.role || 'unknown'}`
   if (action === 'restaurant_login') return d.phone ? `Phone: ${d.phone}` : ''
+  if (action === 'generate_report') {
+    const month = MONTH_NAMES_SHORT[Number(d.month)] || ''
+    const platform = d.platform ? String(d.platform).charAt(0).toUpperCase() + String(d.platform).slice(1) : ''
+    return `${platform} - ${month} ${d.year || ''} (Report ${String(d.report_no || '').padStart(2, '0')})`
+  }
   if (action === 'update_restaurant' || action === 'update_user') {
     const fields = d.fields_updated
     if (Array.isArray(fields)) return `Changed: ${fields.join(', ')}`
