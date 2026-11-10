@@ -587,7 +587,7 @@ export default function AdminDashboard() {
           <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
             {ACTIVITY_FILTERS.map(f => (
               <button key={f.key} onClick={() => setActivityFilter(f.key)} style={{
-                padding: '6px 14px', borderRadius: 8, border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                padding: '6px 14px', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer',
                 background: activityFilter === f.key ? '#3b82f6' : '#1a2235',
                 color: activityFilter === f.key ? '#fff' : '#64748b', transition: 'all 0.2s',
                 border: activityFilter === f.key ? '1px solid transparent' : '1px solid rgba(255,255,255,0.08)',
