@@ -95,6 +95,8 @@ export default function AdminDashboard() {
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'restaurants' | 'reports' | 'users' | 'activity'>('restaurants')
+  const [restSort, setRestSort] = useState<'name' | 'created'>('name')
+  const [reportSort, setReportSort] = useState<'name' | 'created'>('created')
   const [modal, setModal] = useState<ModalState>({ type: 'none' })
   const [actionLoading, setActionLoading] = useState(false)
   const [actionError, setActionError] = useState('')
@@ -229,7 +231,10 @@ export default function AdminDashboard() {
     r.phone?.includes(search) ||
     r.email?.toLowerCase().includes(search.toLowerCase()) ||
     r.city?.toLowerCase().includes(search.toLowerCase())
-  )
+  ).sort((a, b) => {
+    if (restSort === 'name') return a.name.localeCompare(b.name)
+    return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+  })
 
   function getRestaurantName(id: string) {
     return restaurants.find(r => r.id === id)?.name || 'Unknown'
@@ -257,7 +262,17 @@ export default function AdminDashboard() {
       }
       map.get(key)!.platforms.push({ platform: r.platform, status: r.status, created_at: r.created_at })
     }
-    return Array.from(map.values())
+    const arr = Array.from(map.values())
+    if (reportSort === 'name') {
+      arr.sort((a, b) => getRestaurantName(a.restaurant_id).localeCompare(getRestaurantName(b.restaurant_id)))
+    } else {
+      arr.sort((a, b) => {
+        const aDate = a.platforms.reduce((latest, p) => (!latest || (p.created_at && p.created_at > latest)) ? (p.created_at || latest) : latest, '')
+        const bDate = b.platforms.reduce((latest, p) => (!latest || (p.created_at && p.created_at > latest)) ? (p.created_at || latest) : latest, '')
+        return new Date(bDate || 0).getTime() - new Date(aDate || 0).getTime()
+      })
+    }
+    return arr
   })()
 
   const statCards = [
@@ -267,7 +282,7 @@ export default function AdminDashboard() {
   ]
 
   const hasActions = canEdit || canDelete
-  const restHeaders = ['Name', 'City', 'Phone', 'Phone 2', 'Email', 'Status', 'Platforms']
+  const restHeaders = ['#', 'Name', 'City', 'Phone', 'Phone 2', 'Email', 'Status', 'Platforms']
   if (hasActions) restHeaders.push('Actions')
 
   const tabs = canViewActivity
@@ -338,14 +353,17 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        {/* Search (restaurants) */}
+        {/* Search + Sort (restaurants) */}
         {activeTab === 'restaurants' && (
-          <div style={{ position: 'relative', marginBottom: 16, maxWidth: 400 }}>
-            <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#475569' }} />
-            <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Search by name, phone, email, city..."
-              style={{ width: '100%', padding: '10px 14px 10px 40px', fontSize: 14, border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, outline: 'none', background: '#1a2235', color: '#f1f5f9', boxSizing: 'border-box' }}
-            />
+          <div style={{ display: 'flex', gap: 12, marginBottom: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ position: 'relative', maxWidth: 400, flex: 1, minWidth: 200 }}>
+              <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#475569' }} />
+              <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+                placeholder="Search by name, phone, email, city..."
+                style={{ width: '100%', padding: '10px 14px 10px 40px', fontSize: 14, border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, outline: 'none', background: '#1a2235', color: '#f1f5f9', boxSizing: 'border-box' }}
+              />
+            </div>
+            <SortToggle value={restSort} onChange={setRestSort} />
           </div>
         )}
 
@@ -375,8 +393,9 @@ export default function AdminDashboard() {
                     <tr><td colSpan={restHeaders.length} style={{ padding: 40, textAlign: 'center', color: '#475569' }}>Loading...</td></tr>
                   ) : filtered.length === 0 ? (
                     <tr><td colSpan={restHeaders.length} style={{ padding: 40, textAlign: 'center', color: '#475569' }}>No restaurants found</td></tr>
-                  ) : filtered.map(r => (
+                  ) : filtered.map((r, i) => (
                     <tr key={r.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      <td style={{ padding: '12px 16px', fontSize: 12, fontWeight: 700, color: '#475569', fontVariantNumeric: 'tabular-nums' }}>{i + 1}</td>
                       <td style={{ padding: '12px 16px', fontSize: 14, fontWeight: 700, color: '#f1f5f9' }}>{r.name}</td>
                       <td style={{ padding: '12px 16px', fontSize: 13, color: '#94a3b8' }}>{r.city || '-'}</td>
                       <td style={{ padding: '12px 16px', fontSize: 13, color: '#94a3b8', fontVariantNumeric: 'tabular-nums' }}>{r.phone}</td>
@@ -419,22 +438,26 @@ export default function AdminDashboard() {
 
         {/* ===== REPORTS TABLE (grouped) ===== */}
         {activeTab === 'reports' && (
+          <>
+          <div style={{ marginBottom: 16 }}>
+            <SortToggle value={reportSort} onChange={setReportSort} />
+          </div>
           <div style={{ background: '#1a2235', borderRadius: 16, border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                    {['Restaurant', 'Platforms', 'Month', 'Report', 'Status', 'Uploaded'].map(h => (
+                    {['#', 'Restaurant', 'Platforms', 'Month', 'Report', 'Status', 'Uploaded'].map(h => (
                       <th key={h} style={{ padding: '12px 16px', fontSize: 10, fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'left' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#475569' }}>Loading...</td></tr>
+                    <tr><td colSpan={7} style={{ padding: 40, textAlign: 'center', color: '#475569' }}>Loading...</td></tr>
                   ) : groupedReports.length === 0 ? (
-                    <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: '#475569' }}>No reports uploaded yet</td></tr>
-                  ) : groupedReports.map(g => {
+                    <tr><td colSpan={7} style={{ padding: 40, textAlign: 'center', color: '#475569' }}>No reports uploaded yet</td></tr>
+                  ) : groupedReports.map((g, i) => {
                     const allGenerated = g.platforms.every(p => p.status === 'generated')
                     const latestDate = g.platforms.reduce((latest, p) => {
                       if (!p.created_at) return latest
@@ -443,6 +466,7 @@ export default function AdminDashboard() {
 
                     return (
                       <tr key={g.key} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                        <td style={{ padding: '12px 16px', fontSize: 12, fontWeight: 700, color: '#475569', fontVariantNumeric: 'tabular-nums' }}>{i + 1}</td>
                         <td style={{ padding: '12px 16px', fontSize: 14, fontWeight: 700, color: '#f1f5f9' }}>{getRestaurantName(g.restaurant_id)}</td>
                         <td style={{ padding: '12px 16px' }}>
                           <div style={{ display: 'flex', gap: 4 }}>
@@ -474,6 +498,7 @@ export default function AdminDashboard() {
               </table>
             </div>
           </div>
+          </>
         )}
 
         {/* ===== USERS TABLE ===== */}
@@ -757,6 +782,20 @@ function formatLogDetails(action: string, d: Record<string, unknown>): string {
   if (action === 'delete_user') return d.user_email ? String(d.user_email) : ''
   if (action === 'create_restaurant') return d.city ? `${d.city}, ${d.state || ''}` : ''
   return ''
+}
+
+function SortToggle({ value, onChange }: { value: 'name' | 'created'; onChange: (v: 'name' | 'created') => void }) {
+  return (
+    <div style={{ display: 'flex', gap: 2, background: '#0f1729', borderRadius: 8, padding: 2 }}>
+      {([['name', 'A-Z'], ['created', 'Newest']] as const).map(([key, label]) => (
+        <button key={key} onClick={() => onChange(key)} style={{
+          padding: '6px 14px', borderRadius: 6, border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+          background: value === key ? '#3b82f6' : 'transparent',
+          color: value === key ? '#fff' : '#64748b', transition: 'all 0.2s',
+        }}>{label}</button>
+      ))}
+    </div>
+  )
 }
 
 function ActionBtn({ icon, color, onClick }: { icon: React.ReactNode; color: string; onClick: () => void }) {
