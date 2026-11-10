@@ -97,6 +97,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'restaurants' | 'reports' | 'users' | 'activity'>('restaurants')
   const [restSort, setRestSort] = useState<'name' | 'created'>('name')
   const [reportSort, setReportSort] = useState<'name' | 'created'>('created')
+  const [activityFilter, setActivityFilter] = useState<string>('all')
   const [modal, setModal] = useState<ModalState>({ type: 'none' })
   const [actionLoading, setActionLoading] = useState(false)
   const [actionError, setActionError] = useState('')
@@ -489,7 +490,7 @@ export default function AdminDashboard() {
                           }}>{allGenerated ? 'generated' : 'pending'}</span>
                         </td>
                         <td style={{ padding: '12px 16px', fontSize: 12, color: '#64748b' }}>
-                          {latestDate ? new Date(latestDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
+                          {latestDate ? new Date(latestDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
                         </td>
                       </tr>
                     )
@@ -541,7 +542,7 @@ export default function AdminDashboard() {
                           }}>{u.status}</span>
                         </td>
                         <td style={{ padding: '12px 16px', fontSize: 12, color: '#64748b' }}>
-                          {u.last_login_at ? new Date(u.last_login_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Never'}
+                          {u.last_login_at ? new Date(u.last_login_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' }) : 'Never'}
                         </td>
                         {isDeveloper && (
                           <td style={{ padding: '12px 10px' }}>
@@ -561,12 +562,37 @@ export default function AdminDashboard() {
           </>
         )}
         {/* ===== ACTIVITY LOG ===== */}
-        {activeTab === 'activity' && canViewActivity && (
+        {activeTab === 'activity' && canViewActivity && (() => {
+          const ACTIVITY_FILTERS = [
+            { key: 'all', label: 'All' },
+            { key: 'restaurant_login', label: 'Restaurant Logins' },
+            { key: 'generate_report', label: 'Reports Generated' },
+            { key: 'login', label: 'Admin Logins' },
+            { key: 'restaurant_actions', label: 'Restaurant Changes' },
+            { key: 'user_actions', label: 'User Changes' },
+          ]
+          const filteredLogs = activityFilter === 'all' ? activityLogs
+            : activityFilter === 'restaurant_actions' ? activityLogs.filter(l => ['create_restaurant', 'update_restaurant', 'delete_restaurant'].includes(l.action))
+            : activityFilter === 'user_actions' ? activityLogs.filter(l => ['create_user', 'update_user', 'delete_user'].includes(l.action))
+            : activityLogs.filter(l => l.action === activityFilter)
+
+          return (
+          <>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+            {ACTIVITY_FILTERS.map(f => (
+              <button key={f.key} onClick={() => setActivityFilter(f.key)} style={{
+                padding: '6px 14px', borderRadius: 8, border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                background: activityFilter === f.key ? '#3b82f6' : '#1a2235',
+                color: activityFilter === f.key ? '#fff' : '#64748b', transition: 'all 0.2s',
+                border: activityFilter === f.key ? '1px solid transparent' : '1px solid rgba(255,255,255,0.08)',
+              }}>{f.label}</button>
+            ))}
+          </div>
           <div style={{ background: '#1a2235', borderRadius: 16, border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
             <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 10 }}>
               <Clock size={16} color="#3b82f6" />
               <span style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9' }}>Activity Log</span>
-              <span style={{ fontSize: 12, color: '#64748b', marginLeft: 'auto' }}>{activityLogs.length} entries</span>
+              <span style={{ fontSize: 12, color: '#64748b', marginLeft: 'auto' }}>{filteredLogs.length} entries</span>
             </div>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
@@ -580,9 +606,9 @@ export default function AdminDashboard() {
                 <tbody>
                   {loading ? (
                     <tr><td colSpan={5} style={{ padding: 40, textAlign: 'center', color: '#475569' }}>Loading...</td></tr>
-                  ) : activityLogs.length === 0 ? (
+                  ) : filteredLogs.length === 0 ? (
                     <tr><td colSpan={5} style={{ padding: 40, textAlign: 'center', color: '#475569' }}>No activity recorded yet</td></tr>
-                  ) : activityLogs.map(log => {
+                  ) : filteredLogs.map(log => {
                     const d = parseLogDetails(log.details)
                     const targetName = String(d.restaurant_name || d.user_name || d.admin_name || '')
                     return (
@@ -612,7 +638,9 @@ export default function AdminDashboard() {
               </table>
             </div>
           </div>
-        )}
+          </>
+          )
+        })()}
       </div>
 
       {/* ===== MODALS ===== */}
@@ -676,8 +704,8 @@ export default function AdminDashboard() {
             <DetailRow label="Email" value={modal.user.email} />
             <DetailRow label="Role" value={modal.user.role === 'super_admin' ? 'Admin' : modal.user.role === 'view_only' ? 'View Only' : 'Developer'} />
             <DetailRow label="Status" value={modal.user.status} />
-            <DetailRow label="Created" value={modal.user.created_at ? new Date(modal.user.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'} />
-            <DetailRow label="Last Login" value={modal.user.last_login_at ? new Date(modal.user.last_login_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Never'} />
+            <DetailRow label="Created" value={modal.user.created_at ? new Date(modal.user.created_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' }) : '-'} />
+            <DetailRow label="Last Login" value={modal.user.last_login_at ? new Date(modal.user.last_login_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' }) : 'Never'} />
           </div>
         </Modal>
       )}
