@@ -5,6 +5,12 @@ import { useAuth } from '../contexts/AuthContext'
 import { MONTH_NAMES } from '../lib/format'
 import type { Restaurant, Report } from '../types'
 
+function toIST(ts: string | null | undefined): Date {
+  if (!ts) return new Date(0)
+  const s = ts.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(ts) ? ts : ts + 'Z'
+  return new Date(s)
+}
+
 interface AdminUser {
   id: string
   email: string
@@ -490,7 +496,7 @@ export default function AdminDashboard() {
                           }}>{allGenerated ? 'generated' : 'pending'}</span>
                         </td>
                         <td style={{ padding: '12px 16px', fontSize: 12, color: '#64748b' }}>
-                          {latestDate ? new Date(latestDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
+                          {latestDate ? toIST(latestDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
                         </td>
                       </tr>
                     )
@@ -542,7 +548,7 @@ export default function AdminDashboard() {
                           }}>{u.status}</span>
                         </td>
                         <td style={{ padding: '12px 16px', fontSize: 12, color: '#64748b' }}>
-                          {u.last_login_at ? new Date(u.last_login_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' }) : 'Never'}
+                          {u.last_login_at ? toIST(u.last_login_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' }) : 'Never'}
                         </td>
                         {isDeveloper && (
                           <td style={{ padding: '12px 10px' }}>
@@ -614,8 +620,8 @@ export default function AdminDashboard() {
                     return (
                       <tr key={log.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                         <td style={{ padding: '12px 16px', fontSize: 12, color: '#64748b', whiteSpace: 'nowrap' }}>
-                          {new Date(log.created_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' })}{' '}
-                          {new Date(log.created_at).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true })}
+                          {toIST(log.created_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' })}{' '}
+                          {toIST(log.created_at).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true })}
                         </td>
                         <td style={{ padding: '12px 16px' }}>
                           <div style={{ fontSize: 13, fontWeight: 700, color: '#f1f5f9' }}>{String(d.admin_name || d.restaurant_name || 'Unknown')}</div>
@@ -704,8 +710,8 @@ export default function AdminDashboard() {
             <DetailRow label="Email" value={modal.user.email} />
             <DetailRow label="Role" value={modal.user.role === 'super_admin' ? 'Admin' : modal.user.role === 'view_only' ? 'View Only' : 'Developer'} />
             <DetailRow label="Status" value={modal.user.status} />
-            <DetailRow label="Created" value={modal.user.created_at ? new Date(modal.user.created_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' }) : '-'} />
-            <DetailRow label="Last Login" value={modal.user.last_login_at ? new Date(modal.user.last_login_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' }) : 'Never'} />
+            <DetailRow label="Created" value={modal.user.created_at ? toIST(modal.user.created_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' }) : '-'} />
+            <DetailRow label="Last Login" value={modal.user.last_login_at ? toIST(modal.user.last_login_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric' }) : 'Never'} />
           </div>
         </Modal>
       )}
